@@ -161,6 +161,8 @@
       tags: [meta.label.toLowerCase()],
       by: g.poster ? g.poster.name : 'Verified Student',
       init: g.poster ? g.poster.initials : 'ST',
+      posterId: g.posterId || (g.poster ? g.poster.id : null),
+      workerId: g.workerId || (g.worker ? g.worker.id : null),
       spots: g.spotsLeft != null ? g.spotsLeft : (g.spotsTotal || 4),
       total: g.spotsTotal || 4,
       status: g.status,

@@ -172,25 +172,51 @@
 
     // Check protected page access
     if (isProtected && !token) {
-      location.href = 'login.html?next=' + encodeURIComponent(location.pathname + location.search);
+      var nextPath = (location.pathname.split('/').pop() || 'dashboard.html') + location.search;
+      location.href = 'login.html?next=' + encodeURIComponent(nextPath);
       return;
     }
 
-    // Update avatar with user initials
-    var avatarLink = $(".profile-mini");
-    if (avatarLink && user) {
-      avatarLink.textContent = user.initials || (user.name ? user.name.slice(0, 2).toUpperCase() : "ST");
-      avatarLink.title = user.name + " (" + (user.college || "Student") + ")";
+    // Redirect already logged-in users away from auth pages
+    if (isAuthPage && token && user) {
+      location.href = qs("next") || "dashboard.html";
+      return;
     }
 
-    // Add Logout handling for logout links
-    $$("a[href*='login.html'], a[href='index.html']").forEach(function (link) {
-      if (link.textContent.trim().toLowerCase() === 'log out') {
+    // Dynamic Navbar sync across all pages based on real login state
+    var navActions = $(".nav-actions");
+    if (navActions) {
+      if (token && user) {
+        var initials = user.initials || (user.name ? user.name.slice(0, 2).toUpperCase() : "ST");
+        navActions.innerHTML =
+          '<a class="icon-link" href="notifications.html" aria-label="Notifications" title="Notifications">🔔</a>' +
+          '<a class="profile-mini" href="profile.html" aria-label="Profile" title="' + esc(user.name) + '">' + esc(initials) + '</a>' +
+          '<a class="btn btn-small btn-light" href="#" id="global-logout-btn">Log out</a>';
+
+        var navLogout = $("#global-logout-btn");
+        if (navLogout) {
+          navLogout.addEventListener("click", async function (e) {
+            e.preventDefault();
+            if (API) await API.auth.logout();
+            toast("Logged out successfully");
+            setTimeout(function () { location.href = "index.html"; }, 300);
+          });
+        }
+      } else {
+        navActions.innerHTML =
+          '<a class="btn btn-light" href="login.html">Log in</a>' +
+          '<a class="btn btn-primary" href="register.html">Join Gig Hub</a>';
+      }
+    }
+
+    // Add Logout handling for any other logout links (e.g. in footers)
+    $$("a").forEach(function (link) {
+      if (link.textContent.trim().toLowerCase() === 'log out' && link.id !== 'global-logout-btn') {
         link.addEventListener("click", async function (e) {
           e.preventDefault();
           if (API) await API.auth.logout();
           toast("Logged out successfully");
-          setTimeout(function () { location.href = "index.html"; }, 500);
+          setTimeout(function () { location.href = "index.html"; }, 300);
         });
       }
     });
@@ -653,9 +679,32 @@
     var c = catOf(g);
     var food = g.cat === "food" || g.rawCat === "food";
     var left = spotsLeft(g);
-    var cta = food
-      ? (left > 0 ? '<a class="btn btn-primary btn-lg btn-full" href="join-order.html?id=' + encodeURIComponent(g.id) + '">Join this order →</a>' : '<span class="btn btn-light btn-lg btn-full">Order is full</span>')
-      : '<button class="btn btn-primary btn-lg btn-full" id="apply">Apply for this gig →</button>';
+    var user = (API && API.storage.getUser()) || null;
+    var isPoster = (g.viewer && g.viewer.isPoster) || (user && g.posterId && String(user.id) === String(g.posterId));
+    var isWorker = (g.viewer && g.viewer.isWorker) || (user && g.workerId && String(user.id) === String(g.workerId));
+    var isCompleted = g.status === 'completed';
+    var isInProgress = g.status === 'in_progress';
+
+    var cta = "";
+    if (isCompleted) {
+      cta = '<div class="btn btn-light btn-lg btn-full" style="background:#dcfce7;color:#166534;font-weight:700;pointer-events:none;text-align:center">✓ Gig Completed</div>';
+    } else if (isPoster) {
+      if (isInProgress) {
+        cta = '<button class="btn btn-primary btn-lg btn-full" id="complete-btn" style="background:#16a34a">✓ Mark Gig Completed</button>';
+      } else if (food) {
+        cta = '<button class="btn btn-primary btn-lg btn-full" id="complete-btn">Close & Complete Food Order</button>';
+      } else {
+        cta = '<div class="btn btn-light btn-lg btn-full" style="pointer-events:none;text-align:center">Waiting for a student to accept</div>';
+      }
+    } else if (isWorker) {
+      cta = '<div class="btn btn-light btn-lg btn-full" style="background:#eff6ff;color:#1d4ed8;font-weight:700;pointer-events:none;text-align:center">⚡ You are working on this gig</div>';
+    } else if (food) {
+      cta = left > 0
+        ? '<a class="btn btn-primary btn-lg btn-full" href="join-order.html?id=' + encodeURIComponent(g.id) + '">Join this order →</a>'
+        : '<span class="btn btn-light btn-lg btn-full">Order is full</span>';
+    } else {
+      cta = '<button class="btn btn-primary btn-lg btn-full" id="apply">Apply for this gig →</button>';
+    }
 
     box.innerHTML =
       '<a href="gigs.html" class="back-link">← Back to gigs</a><div class="detail-grid"><div class="stack">' +
@@ -671,22 +720,51 @@
 
     $("#similar") && ($("#similar").innerHTML = suggestHTML(suggest(null, { like: g, exclude: g.id, n: 3 })));
 
+    var compBtn = $("#complete-btn");
+    if (compBtn) {
+      compBtn.addEventListener("click", async function () {
+        var actionText = food ? "close and complete this food order" : "mark this gig as completed";
+        if (!confirm("Are you sure you want to " + actionText + "?")) return;
+        compBtn.disabled = true;
+        compBtn.textContent = "Completing...";
+        try {
+          await API.gigs.complete(g.id);
+          confetti();
+          toast("Gig completed successfully!");
+          setTimeout(function () { location.reload(); }, 600);
+        } catch (err) {
+          toast(err.message || "Failed to complete gig");
+          compBtn.disabled = false;
+          compBtn.textContent = food ? "Close & Complete Food Order" : "✓ Mark Gig Completed";
+        }
+      });
+    }
+
     var ap = $("#apply");
     if (ap) {
       var m = $("#modal");
-      ap.addEventListener("click", function () { m.classList.add("show"); $("#msg").focus(); });
+      ap.addEventListener("click", function () {
+        if (!user) {
+          location.href = "login.html?next=" + encodeURIComponent("gig-details.html?id=" + g.id);
+          return;
+        }
+        m.classList.add("show");
+        $("#msg").focus();
+      });
       $("#cancel").addEventListener("click", function () { m.classList.remove("show"); });
       m.addEventListener("click", function (e) { if (e.target === m) m.classList.remove("show"); });
       $("#send").addEventListener("click", async function () {
         try {
           await API.gigs.accept(g.id);
           toast("Application sent to " + g.by + "!");
+          m.classList.remove("show");
+          ap.textContent = "✓ Application sent";
+          ap.disabled = true;
+          setTimeout(function () { location.reload(); }, 600);
         } catch (e) {
-          toast("Application recorded!");
+          toast(e.message || "Application recorded!");
+          m.classList.remove("show");
         }
-        m.classList.remove("show");
-        ap.textContent = "✓ Application sent";
-        ap.disabled = true;
       });
     }
   };
