@@ -15,9 +15,12 @@
       if (stored) return stored;
     } catch (e) {}
 
-    // If served from backend server (port 4000), use relative path
-    if (location.port === '4000') return '/api';
-    // Default development server address
+    // When served over http/https (e.g. Render, production, or local server),
+    // always use relative '/api' on the same origin so it connects properly everywhere
+    if (location.protocol === 'http:' || location.protocol === 'https:') {
+      return '/api';
+    }
+    // Default fallback (e.g. file:// protocol)
     return 'http://localhost:4000/api';
   }
 

@@ -281,7 +281,6 @@
   async function initGoogleAuth(opts) {
     opts = opts || {};
     var customBtn = $(opts.buttonId);
-    var quickBtn = $(opts.quickBtnId);
     var isRegister = !!opts.isRegister;
     var showAlert = opts.showAlert || function () {};
 
@@ -363,45 +362,18 @@
         openGoogleOAuth();
       });
     }
-
-    // 1-Click Instant Demo Login
-    if (quickBtn) {
-      quickBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        var demoEmail = isRegister ? "newstudent@university.edu" : "ayush@university.edu";
-        var demoName = isRegister ? "New Student" : "Ayush Kumar";
-        API.auth.googleLogin({ mockEmail: demoEmail, mockName: demoName, remember: true })
-          .then(function (res) {
-            toast("Instant demo login successful!");
-            setTimeout(function () { location.href = qs("next") || "dashboard.html"; }, 300);
-          })
-          .catch(function (err) {
-            showAlert(err.message, true);
-          });
-      });
-    }
   }
 
   // 2. Login Page (login.html)
   pages.login = async function () {
     var form = $("#login-form");
     var alertBox = $("#auth-alert");
-    var demoBtn = $("#demo-fill-btn");
 
     function showAlert(msg, isError) {
       if (!alertBox) return;
       alertBox.textContent = msg;
       alertBox.className = "auth-alert " + (isError ? "error" : "success");
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    // Autofill demo credentials
-    if (demoBtn) {
-      demoBtn.addEventListener("click", function () {
-        $("#email").value = "ayush@university.edu";
-        $("#password").value = "Password123";
-        toast("Autofilled demo credentials");
-      });
     }
 
     // Standard Form Login
@@ -431,7 +403,6 @@
     // Google Sign-In setup
     await initGoogleAuth({
       buttonId: "#google-btn",
-      quickBtnId: "#quick-google-btn",
       isRegister: false,
       showAlert: showAlert
     });
@@ -475,7 +446,6 @@
     // Google Sign-Up setup
     await initGoogleAuth({
       buttonId: "#reg-google-btn",
-      quickBtnId: "#reg-quick-google-btn",
       isRegister: true,
       showAlert: showAlert
     });
