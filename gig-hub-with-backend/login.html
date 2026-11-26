@@ -15,15 +15,8 @@
   <div class="auth-card">
     <div class="auth-heading"><span class="eyebrow">WELCOME BACK</span><h1>Log in to <em>Gig Hub</em></h1><p>Continue connecting with your campus community.</p></div>
     <div id="auth-alert" class="auth-alert" role="alert"></div>
-    <form id="login-form" action="dashboard.html" method="get">
-      <label>University email<input type="email" id="email" name="email" placeholder="you@university.edu" required autocomplete="email"></label>
-      <label>Password<input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password"></label>
-      <div class="form-row"><label class="check"><input type="checkbox" id="remember" name="remember" checked> Remember me</label><a href="#" id="forgot-link">Forgot password?</a></div>
-      <button class="btn btn-primary btn-full btn-lg" type="submit" id="login-submit-btn">Log in →</button>
-    </form>
-    <div class="divider"><span>or</span></div>
     <div id="google-auth-section" class="google-auth-section">
-      <div id="google-signin-container" style="display:flex;justify-content:center;margin-bottom:6px"></div>
+      <div id="google-signin-container" style="display:flex;justify-content:center;margin-bottom:4px"></div>
       <button type="button" class="google-btn" id="google-btn">
         <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
           <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
@@ -34,6 +27,13 @@
         <span>Continue with Google</span>
       </button>
     </div>
+    <div class="divider"><span>or log in with email</span></div>
+    <form id="login-form" action="dashboard.html" method="get">
+      <label>University email<input type="email" id="email" name="email" placeholder="you@university.edu" required autocomplete="email"></label>
+      <label>Password<input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password"></label>
+      <div class="form-row"><label class="check"><input type="checkbox" id="remember" name="remember" checked> Remember me</label><a href="#" id="forgot-link">Forgot password?</a></div>
+      <button class="btn btn-primary btn-full btn-lg" type="submit" id="login-submit-btn">Log in →</button>
+    </form>
     <div class="auth-demo-hint">
       <span>💡 Demo: <code>ayush@university.edu</code></span>
       <button type="button" class="auth-demo-btn" id="demo-fill-btn">Autofill</button>

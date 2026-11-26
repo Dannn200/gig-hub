@@ -15,17 +15,8 @@
   <div class="auth-card">
     <div class="auth-heading"><span class="eyebrow">JOIN THE COMMUNITY</span><h1>Create your <em>account</em></h1><p>Use your university details to get started.</p></div>
     <div id="auth-alert" class="auth-alert" role="alert"></div>
-    <form id="register-form" action="dashboard.html" method="get">
-      <label>Full name<input type="text" id="reg-name" name="name" placeholder="Ayush Kumar" required autocomplete="name"></label>
-      <label>University email<input type="email" id="reg-email" name="email" placeholder="you@university.edu" required autocomplete="email"></label>
-      <label>University / College<input type="text" id="reg-college" name="college" placeholder="Your university name" required></label>
-      <label>Password<input type="password" id="reg-password" name="password" placeholder="At least 8 characters (letter + number)" required autocomplete="new-password"></label>
-      <label class="check"><input type="checkbox" id="reg-terms" required checked> I agree to the community guidelines.</label>
-      <button class="btn btn-primary btn-full btn-lg" type="submit" id="reg-submit-btn">Create account →</button>
-    </form>
-    <div class="divider"><span>or</span></div>
     <div class="google-auth-section">
-      <div id="google-signup-container" style="display:flex;justify-content:center;margin-bottom:6px"></div>
+      <div id="google-signup-container" style="display:flex;justify-content:center;margin-bottom:4px"></div>
       <button type="button" class="google-btn" id="reg-google-btn">
         <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
           <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
@@ -36,6 +27,15 @@
         <span>Sign up with Google</span>
       </button>
     </div>
+    <div class="divider"><span>or register with email</span></div>
+    <form id="register-form" action="dashboard.html" method="get">
+      <label>Full name<input type="text" id="reg-name" name="name" placeholder="Ayush Kumar" required autocomplete="name"></label>
+      <label>University email<input type="email" id="reg-email" name="email" placeholder="you@university.edu" required autocomplete="email"></label>
+      <label>University / College<input type="text" id="reg-college" name="college" placeholder="Your university name" required></label>
+      <label>Password<input type="password" id="reg-password" name="password" placeholder="At least 8 characters (letter + number)" required autocomplete="new-password"></label>
+      <label class="check"><input type="checkbox" id="reg-terms" required checked> I agree to the community guidelines.</label>
+      <button class="btn btn-primary btn-full btn-lg" type="submit" id="reg-submit-btn">Create account →</button>
+    </form>
     <p class="auth-switch" style="margin-top:16px">Already have an account? <a href="login.html">Log in</a></p>
   </div>
   <p class="auth-note">✨ Free to join · Built for students</p>
