@@ -4,9 +4,22 @@
   "private": true,
   "description": "Gig Hub — Campus gig & food-sharing marketplace",
   "scripts": {
-    "build": "cd gig-hub-with-backend/backend && npm install && npm run seed",
-    "start": "cd gig-hub-with-backend/backend && npm start",
-    "seed": "cd gig-hub-with-backend/backend && npm run seed",
+    "postinstall": "cd gig-hub-with-backend/backend && npm install && node src/seed.js",
+    "build": "cd gig-hub-with-backend/backend && npm install && node src/seed.js",
+    "start": "cd gig-hub-with-backend/backend && node src/server.js",
+    "seed": "cd gig-hub-with-backend/backend && node src/seed.js",
     "test": "cd gig-hub-with-backend/backend && npm test"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "zod": "^3.23.8"
   }
 }
