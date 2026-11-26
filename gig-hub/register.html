@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6544e6">
+<title>Create Account | Gig Hub</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%236544e6'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='white' font-family='Georgia' font-weight='700'%3EG%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="auth-body" data-page="register">
+<div class="auth-wrap">
+  <div class="auth-brand"><a class="brand" href="index.html"><span class="brand-mark">G</span><span>Gig<span class="brand-accent">Hub</span></span></a></div>
+  <div class="auth-card">
+    <div class="auth-heading"><span class="eyebrow">JOIN THE COMMUNITY</span><h1>Create your <em>account</em></h1><p>Use your university details to get started.</p></div>
+    <div id="auth-alert" class="auth-alert" role="alert"></div>
+    <form id="register-form" action="dashboard.html" method="get">
+      <label>Full name<input type="text" id="reg-name" name="name" placeholder="Ayush Kumar" required autocomplete="name"></label>
+      <label>University email<input type="email" id="reg-email" name="email" placeholder="you@university.edu" required autocomplete="email"></label>
+      <label>University / College<input type="text" id="reg-college" name="college" placeholder="Your university name" required></label>
+      <label>Password<input type="password" id="reg-password" name="password" placeholder="At least 8 characters (letter + number)" required autocomplete="new-password"></label>
+      <label class="check"><input type="checkbox" id="reg-terms" required checked> I agree to the community guidelines.</label>
+      <button class="btn btn-primary btn-full btn-lg" type="submit" id="reg-submit-btn">Create account →</button>
+    </form>
+    <div class="divider"><span>or</span></div>
+    <div class="google-auth-section">
+      <button type="button" class="google-btn" id="reg-google-btn">
+        <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+          <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+        </svg>
+        <span>Sign up with Google</span>
+      </button>
+    </div>
+    <p class="auth-switch" style="margin-top:16px">Already have an account? <a href="login.html">Log in</a></p>
+  </div>
+  <p class="auth-note">✨ Free to join · Built for students</p>
+</div>
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Gig Hub — Your university community marketplace for gigs, skills, food sharing and campus events.">
+<meta name="theme-color" content="#6544e6">
+<title>Gig Hub | Campus Gigs & Community</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%236544e6'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='white' font-family='Georgia' font-weight='700'%3EG%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="home">
+<header class="navbar"><a class="brand" href="index.html"><span class="brand-mark">G</span><span>Gig<span class="brand-accent">Hub</span></span></a><nav class="nav-links" id="nav"><a class="active" href="index.html">Home</a><a href="gigs.html">Explore Gigs</a><a href="post-gig.html">Post a Gig</a><a href="dashboard.html">Dashboard</a></nav><div class="nav-actions"><a class="btn btn-light" href="login.html">Log in</a><a class="btn btn-primary" href="register.html">Join Gig Hub</a></div><button class="menu-btn" aria-label="Menu" aria-expanded="false">☰</button></header>
+<main>
+<section class="hero">
+  <div class="hero-content">
+    <span class="eyebrow">🎓 Built for university communities</span>
+    <h1>Turn your <span>time &amp; skills</span> into opportunities.</h1>
+    <p>Share food, offer your skills, help classmates, discover campus events and earn from useful everyday gigs — all in one trusted student community.</p>
+    <div class="hero-buttons">
+      <a class="btn btn-primary btn-lg" href="gigs.html">Explore Gigs →</a>
+      <a class="btn btn-outline btn-lg" href="post-gig.html">＋ Post a Gig</a>
+    </div>
+    <div class="hero-trust"><span>●</span> Verified student community &nbsp;•&nbsp; ₹ Indian pricing &nbsp;•&nbsp; Campus-first</div>
+  </div>
+  <div class="hero-visual">
+    <div class="float-card float-top"><span class="mini-icon food">🍛</span><div><b>Chicken Biryani</b><small>3 students joined</small></div><strong>₹120</strong></div>
+    <div class="dashboard-preview">
+      <div class="preview-top"><span>Good evening, Ayush 👋</span><span class="status-dot">● Online</span></div>
+      <div class="preview-balance"><small>Available balance</small><strong>₹1,240</strong><span>+ ₹250 this week</span></div>
+      <div class="preview-stats"><div><b>04</b><small>Active gigs</small></div><div><b>18</b><small>Completed</small></div><div><b>4.8 ★</b><small>Rating</small></div></div>
+      <div class="preview-title">Recommended for you</div>
+      <div class="preview-gig"><span class="mini-icon purple">💻</span><div><b>Python Assignment Help</b><small>Today · 4:00 PM</small></div><strong>₹250</strong></div>
+      <div class="preview-gig"><span class="mini-icon orange">🎉</span><div><b>University Fest Volunteer</b><small>Tomorrow · Main Ground</small></div><strong>₹300</strong></div>
+    </div>
+    <div class="float-card float-bottom"><span class="avatar">AK</span><div><b>Ayush Kumar</b><small>★ 4.8 · 18 gigs</small></div><span class="verified">✓</span></div>
+  </div>
+</section>
+
+<section class="stats-strip">
+  <div><strong><span data-count="2500" data-suffix="+">2,500+</span></strong><span>Students</span></div><div><strong><span data-count="850" data-suffix="+">850+</span></strong><span>Gigs completed</span></div><div><strong>₹1.8L+</strong><span>Community earnings</span></div><div><strong>4.8/5</strong><span>Average rating</span></div>
+</section>
+
+<section class="section">
+  <div class="section-heading reveal"><div><span class="eyebrow">WHY GIG HUB?</span><h2>More than a <em>gig platform.</em></h2></div><p>A simple campus network where students help students — and everyone gets value in return.</p></div>
+  <div class="feature-grid reveal">
+    <article class="feature-card"><div class="feature-icon">🍱</div><h3>Share Food</h3><p>Split large canteen orders, share meals and save money together.</p><a href="gigs.html?cat=food">Find food gigs →</a></article>
+    <article class="feature-card"><div class="feature-icon">💡</div><h3>Share Skills</h3><p>Offer coding, design, editing, tutoring and other useful skills.</p><a href="gigs.html?cat=skills">Explore skills →</a></article>
+    <article class="feature-card"><div class="feature-icon">🎪</div><h3>Campus Events</h3><p>Discover events, volunteer opportunities and promotional gigs.</p><a href="gigs.html?cat=events">See events →</a></article>
+    <article class="feature-card"><div class="feature-icon">🤝</div><h3>Help Each Other</h3><p>Parcel pickup, notes, errands and everyday campus tasks made easier.</p><a href="gigs.html?cat=tasks">Find tasks →</a></article>
+  </div>
+</section>
+
+<section class="section tinted">
+  <div class="section-heading reveal"><div><span class="eyebrow">TRENDING NOW</span><h2>Happening on <em>campus today</em></h2></div><p>Fresh gigs and food orders students are joining right now.</p></div>
+  <div id="trending" class="latest-grid reveal"></div>
+</section>
+
+<section class="section" id="how">
+  <div class="section-heading reveal"><div><span class="eyebrow">HOW IT WORKS</span><h2>Get started in <em>three steps</em></h2></div><p>No complicated setup — just your university details and a little time.</p></div>
+  <div class="steps reveal">
+    <div class="step"><h3>Create your profile</h3><p>Sign up with your university email, add your skills and become a verified student.</p></div>
+    <div class="step"><h3>Post or join a gig</h3><p>Share a food order, offer a skill or pick up a task that fits your schedule.</p></div>
+    <div class="step"><h3>Complete &amp; earn</h3><p>Finish the gig, collect your reward and build your rating in the community.</p></div>
+  </div>
+</section>
+
+<section class="section tinted">
+  <div class="section-heading reveal"><div><span class="eyebrow">LOVED BY STUDENTS</span><h2>What students <em>say</em></h2></div></div>
+  <div class="testi-grid reveal">
+    <div class="testi"><span class="stars">★★★★★</span><p>“Great help with my Python assignment. Explained everything clearly.”</p><div class="who"><span class="avatar">RS</span><div><b>Rahul Sharma</b><small>Computer Science</small></div></div></div>
+    <div class="testi"><span class="stars">★★★★★</span><p>“Very reliable for the campus event poster. Delivered before the deadline.”</p><div class="who"><span class="avatar">PM</span><div><b>Priya Mehta</b><small>Design Society</small></div></div></div>
+    <div class="testi"><span class="stars">★★★★★</span><p>“Splitting a biryani order saved me money and I met new people on campus.”</p><div class="who"><span class="avatar">AV</span><div><b>Ankit Verma</b><small>Mechanical Engineering</small></div></div></div>
+  </div>
+</section>
+
+<section class="cta-section reveal">
+  <div><span class="eyebrow">READY TO GET STARTED?</span><h2>Your next opportunity is already on campus.</h2><p>Join fellow students, post what you can do, and discover what you need.</p></div>
+  <a class="btn btn-white btn-lg" href="register.html">Create free account →</a>
+</section>
+</main>
+<footer class="footer"><div class="footer-brand"><a class="brand" href="index.html"><span class="brand-mark">G</span><span>Gig<span class="brand-accent">Hub</span></span></a><p>Students helping students, one gig at a time.</p></div><div><b>Platform</b><a href="gigs.html">Explore Gigs</a><a href="post-gig.html">Post a Gig</a><a href="dashboard.html">Dashboard</a></div><div><b>Account</b><a href="login.html">Log in</a><a href="register.html">Register</a><a href="profile.html">Profile</a></div><div><b>Project</b><a href="index.html#how">About</a><a href="mailto:hello@gighub.example">Contact</a><a href="index.html">Privacy</a></div></footer>
+<div class="footer-bottom">© 2026 Gig Hub · University Community Platform</div>
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

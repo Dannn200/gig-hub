@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment and secrets
+.env
+**/.env
+!.env.example
+!**/.env.example
+
+# SQLite databases & temp files
+*.db
+**/*.db
+*.db-journal
+*.db-wal
+*.db-shm
+**/*.db-wal
+**/*.db-shm
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS Files
+.DS_Store
+Thumbs.db

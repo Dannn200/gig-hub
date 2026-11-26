@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6544e6">
+<title>Dashboard | Gig Hub</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%236544e6'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='white' font-family='Georgia' font-weight='700'%3EG%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="dashboard">
+<header class="navbar"><a class="brand" href="index.html"><span class="brand-mark">G</span><span>Gig<span class="brand-accent">Hub</span></span></a><nav class="nav-links" id="nav"><a href="index.html">Home</a><a href="gigs.html">Explore Gigs</a><a href="post-gig.html">Post a Gig</a><a class="active" href="dashboard.html">Dashboard</a></nav><div class="nav-actions"><a class="icon-link" href="notifications.html" aria-label="Notifications">🔔</a><a class="profile-mini" href="profile.html" aria-label="Profile">AK</a></div><button class="menu-btn" aria-label="Menu" aria-expanded="false">☰</button></header>
+<main class="page-shell">
+<section class="page-head"><div><span class="eyebrow">YOUR DASHBOARD</span><h1>Good evening, <em>Ayush</em> 👋</h1><p>Here’s what’s happening in your Gig Hub community.</p></div><a class="btn btn-primary" href="post-gig.html">＋ Post a Gig</a></section>
+<section class="metric-grid"><div class="metric-card"><span class="metric-icon purple">⚡</span><small>Active Gigs</small><strong id="m-active">04</strong><a href="gigs.html">View active →</a></div><div class="metric-card"><span class="metric-icon green">✓</span><small>Completed</small><strong>18</strong><a href="history.html">View history →</a></div><div class="metric-card"><span class="metric-icon orange">₹</span><small>Total Earned</small><strong>₹4,850</strong><a href="history.html">See earnings →</a></div><div class="metric-card"><span class="metric-icon blue">★</span><small>Your Rating</small><strong>4.8</strong><a href="profile.html">View profile →</a></div></section>
+<div class="dashboard-grid">
+<div class="stack">
+<section class="panel"><div class="panel-head"><div><h2>Recommended for you</h2><p>Based on your skills and campus activity</p></div><a href="gigs.html">View all</a></div>
+<div class="gig-list">
+<article class="gig-row"><span class="mini-icon purple">💻</span><div class="gig-main"><h3>Python Assignment Help</h3><p>Computer Science · Today, 4:00 PM</p><div class="tags"><span>Academic</span><span>Python</span></div></div><strong>₹250</strong><a class="btn btn-small btn-outline" href="gig-details.html?id=g4">View</a></article>
+<article class="gig-row"><span class="mini-icon food">🍛</span><div class="gig-main"><h3>Chicken Biryani — Share Order</h3><p>Main Cafeteria · Today, 1:00 PM</p><div class="tags"><span>Food</span><span>3 spots left</span></div></div><strong>₹120</strong><a class="btn btn-small btn-primary" href="join-order.html?id=f1">Join</a></article>
+<article class="gig-row"><span class="mini-icon orange">🎪</span><div class="gig-main"><h3>University Fest Volunteer</h3><p>Main Ground · Tomorrow, 10:00 AM</p><div class="tags"><span>Events</span><span>2 hours</span></div></div><strong>₹300</strong><a class="btn btn-small btn-outline" href="gig-details.html?id=g5">View</a></article>
+</div></section>
+<section class="panel" id="mine" style="display:none"><div class="panel-head"><div><h2>Your activity</h2><p>Gigs you posted and orders you joined</p></div><a href="history.html">History</a></div><div class="gig-list" id="mine-list"></div></section>
+<section class="suggest" style="margin-top:0;padding:26px"><div class="section-heading" style="margin-bottom:18px"><div><span class="eyebrow">SUGGESTED FOR YOU</span><h2>More that <em>fit your skills</em></h2></div></div><div class="suggest-grid" id="sugg" style="grid-template-columns:1fr"></div></section>
+</div>
+<aside class="side-stack"><div class="panel balance-card"><div class="balance-top"><span>Available balance</span><span class="balance-dot">●</span></div><strong>₹1,240</strong><p>+₹250 earned this week</p><div class="balance-actions"><a href="history.html">Earnings history</a><a href="#">Withdraw</a></div></div>
+<div class="panel quick-panel"><h3>Quick actions</h3><a href="post-gig.html">＋ Post a new gig <span>→</span></a><a href="gigs.html">⌕ Find a gig <span>→</span></a><a href="gigs.html?cat=food">🍱 Join a food order <span>→</span></a><a href="profile.html">◎ Update profile <span>→</span></a></div>
+<div class="panel"><h3 style="font-size:19px;margin-bottom:14px">Weekly goal</h3><div class="progress-row"><div><div class="lab"><span>Earnings</span><span>₹250 / ₹500</span></div><div class="meter"><i style="width:50%"></i></div></div><div><div class="lab"><span>Gigs completed</span><span>3 / 5</span></div><div class="meter"><i style="width:60%"></i></div></div></div></div></aside>
+</div></main>
+<footer class="footer compact"><div class="footer-brand"><a class="brand" href="index.html"><span class="brand-mark">G</span><span>Gig<span class="brand-accent">Hub</span></span></a><p>Students helping students, one gig at a time.</p></div><div><b>Navigate</b><a href="gigs.html">Explore</a><a href="history.html">History</a><a href="profile.html">Profile</a></div><div><b>Account</b><a href="notifications.html">Notifications</a><a href="index.html">Log out</a></div></footer>
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
