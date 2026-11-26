@@ -59,7 +59,7 @@
 
 <!-- Edit Profile Modal -->
 <div class="modal" id="edit-modal">
-  <div class="modal-card" style="max-width:540px">
+  <div class="modal-card" style="max-width:540px;max-height:calc(100vh - 48px);overflow-y:auto">
     <h2>Edit Profile</h2>
     <p>Keep your student details and payment info up to date.</p>
     
@@ -82,7 +82,7 @@
       <label>Skills (comma separated)<input type="text" id="edit-skills" placeholder="Python, Video Editing, Notes, Design"></label>
       <label>UPI ID (for receiving gig reward payments)<input type="text" id="edit-upi" placeholder="yourname@okhdfcbank / yourname@upi"></label>
       
-      <div class="form-actions" style="margin-top:8px">
+      <div class="form-actions" style="margin-top:14px;display:flex;gap:12px;justify-content:flex-end;position:sticky;bottom:-10px;background:#fff;padding-top:12px;padding-bottom:4px;border-top:1px solid var(--line-2);z-index:10">
         <button type="button" class="btn btn-outline" id="edit-modal-cancel">Cancel</button>
         <button type="submit" class="btn btn-primary" id="edit-modal-save">Save changes</button>
       </div>

@@ -1204,6 +1204,7 @@
               if (editAvatarPreview) {
                 editAvatarPreview.innerHTML = '<img src="' + esc(dataUrl) + '" style="width:100%;height:100%;border-radius:18px;object-fit:cover">';
               }
+              toast("Photo selected! Click 'Save changes' below to save.");
             });
           });
         }
@@ -1219,6 +1220,8 @@
         if (editForm) {
           editForm.addEventListener("submit", async function (e) {
             e.preventDefault();
+            var saveBtn = $("#edit-modal-save");
+            if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Saving..."; }
             var payload = {
               name: ($("#edit-name").value || "").trim(),
               college: ($("#edit-college").value || "").trim(),
@@ -1243,6 +1246,8 @@
               setTimeout(function () { location.reload(); }, 600);
             } catch (err) {
               toast(err.message || "Failed to update profile");
+            } finally {
+              if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Save changes"; }
             }
           });
         }

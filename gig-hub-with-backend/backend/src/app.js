@@ -23,8 +23,8 @@ app.use(cors({
   maxAge: 600,
 }));
 if (!config.isTest) app.use(morgan(config.isProd ? 'combined' : 'dev'));
-app.use(express.json({ limit: '50kb' }));
-app.use(express.urlencoded({ extended: false, limit: '50kb' })); // plain HTML <form> posts
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' })); // plain HTML <form> posts
 
 const limiter = (windowMs, max) => rateLimit({
   windowMs, max, standardHeaders: true, legacyHeaders: false,
