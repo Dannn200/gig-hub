@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: gig-hub
+    runtime: node
+    plan: free
+    rootDir: gig-hub-with-backend/backend
+    buildCommand: npm install && npm run seed
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_FRONTEND
+        value: "true"
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: JWT_SECRET
+        generateValue: true

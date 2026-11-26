@@ -1,0 +1,12 @@
+{
+  "name": "gig-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gig Hub — Campus gig & food-sharing marketplace",
+  "scripts": {
+    "build": "cd gig-hub-with-backend/backend && npm install && npm run seed",
+    "start": "cd gig-hub-with-backend/backend && npm start",
+    "seed": "cd gig-hub-with-backend/backend && npm run seed",
+    "test": "cd gig-hub-with-backend/backend && npm test"
+  }
+}
