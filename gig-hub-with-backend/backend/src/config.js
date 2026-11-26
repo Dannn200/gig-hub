@@ -26,7 +26,7 @@ module.exports = {
   googleClientSecret: env.GOOGLE_CLIENT_SECRET || '',
   serveFrontend: env.SERVE_FRONTEND ? env.SERVE_FRONTEND === 'true' : true,
   frontendDir: path.resolve(__dirname, '../..'),
-  // session lengths
-  tokenTtl: '1d',
-  rememberTtl: '30d',
+  // session lengths (permanent: sessions do not expire)
+  tokenTtl: '3650d',
+  rememberTtl: '3650d',
 };

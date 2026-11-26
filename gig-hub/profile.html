@@ -18,22 +18,22 @@
 </style>
 </head>
 <body data-page="profile">
-<header class="navbar"><a class="brand" href="index.html"><span class="brand-mark">G</span><span>Gig<span class="brand-accent">Hub</span></span></a><nav class="nav-links" id="nav"><a href="index.html">Home</a><a href="gigs.html">Explore Gigs</a><a href="post-gig.html">Post a Gig</a><a href="dashboard.html">Dashboard</a></nav><div class="nav-actions"><a class="icon-link" href="notifications.html" aria-label="Notifications">🔔</a><a class="profile-mini active-mini" href="profile.html" aria-label="Profile">AK</a></div><button class="menu-btn" aria-label="Menu" aria-expanded="false">☰</button></header>
+<header class="navbar"><a class="brand" href="index.html"><span class="brand-mark">G</span><span>Gig<span class="brand-accent">Hub</span></span></a><nav class="nav-links" id="nav"><a href="index.html">Home</a><a href="gigs.html">Explore Gigs</a><a href="post-gig.html">Post a Gig</a><a href="dashboard.html">Dashboard</a></nav><div class="nav-actions"><a class="icon-link" href="notifications.html" aria-label="Notifications">🔔</a><a class="profile-mini active-mini" href="profile.html" aria-label="Profile">ST</a></div><button class="menu-btn" aria-label="Menu" aria-expanded="false">☰</button></header>
 <main class="page-shell">
   <section class="profile-hero panel">
     <div class="profile-avatar-wrap">
-      <div class="profile-avatar" id="hero-avatar">AK</div>
+      <div class="profile-avatar" id="hero-avatar">ST</div>
       <label class="avatar-edit-badge" title="Change profile picture" for="avatar-file-input">📷</label>
       <input type="file" id="avatar-file-input" accept="image/*" style="display:none">
     </div>
     <div class="profile-main">
       <div class="profile-name">
-        <h1><span id="profile-name-text">Ayush Kumar</span> <span class="verified-badge">✓ Verified student</span></h1>
-        <p id="profile-dept-text">Computer Science · University Community</p>
-        <div id="profile-upi-wrap" style="display:none"><span class="upi-pill">📱 UPI: <b id="profile-upi-text">ayush@okhdfcbank</b></span></div>
+        <h1><span id="profile-name-text">Student</span> <span class="verified-badge">✓ Verified student</span></h1>
+        <p id="profile-dept-text">University Community</p>
+        <div id="profile-upi-wrap" style="display:none"><span class="upi-pill">📱 UPI: <b id="profile-upi-text"></b></span></div>
       </div>
-      <p class="profile-bio" id="profile-bio-text">Student who enjoys helping others with technology, design and campus activities.</p>
-      <div class="profile-tags" id="profile-tags"><span>HTML/CSS</span><span>Python</span><span>Graphic Design</span><span>Video Editing</span><span>Presentation Design</span></div>
+      <p class="profile-bio" id="profile-bio-text">Welcome to GigHub! Click "Edit profile" to add your bio and skills.</p>
+      <div class="profile-tags" id="profile-tags"></div>
     </div>
     <button class="btn btn-outline" id="edit-profile-btn">Edit profile</button>
   </section>
@@ -42,17 +42,16 @@
     <section class="panel">
       <div class="panel-head"><div><h2>Gig statistics</h2><p>Your contribution to the community</p></div></div>
       <div class="profile-stat-grid">
-        <div><strong id="stat-completed">18</strong><span>Completed</span></div>
-        <div><strong id="stat-active">4</strong><span>Active</span></div>
-        <div><strong id="stat-earned">₹4,850</strong><span>Earned</span></div>
-        <div><strong id="stat-trust">96%</strong><span>Trust score</span></div>
+        <div><strong id="stat-completed">0</strong><span>Completed</span></div>
+        <div><strong id="stat-active">0</strong><span>Active</span></div>
+        <div><strong id="stat-earned">₹0</strong><span>Earned</span></div>
+        <div><strong id="stat-trust">100%</strong><span>Trust score</span></div>
       </div>
     </section>
     <section class="panel">
-      <div class="panel-head"><div><h2>Reviews</h2><p>What students say about you</p></div><span class="rating">★ 4.8</span></div>
+      <div class="panel-head"><div><h2>Reviews</h2><p>What students say about you</p></div><span class="rating" id="profile-avg-rating">★ —</span></div>
       <div id="reviews-list">
-        <div class="review"><div class="review-avatar">RS</div><div><b>Rahul Sharma</b><span>★ ★ ★ ★ ★</span><p>“Great help with my Python assignment. Explained everything clearly.”</p></div></div>
-        <div class="review"><div class="review-avatar">PM</div><div><b>Priya Mehta</b><span>★ ★ ★ ★ ★</span><p>“Very reliable for the campus event poster. Delivered before the deadline.”</p></div></div>
+        <div style="padding:24px;text-align:center;color:var(--ink-3)">No reviews yet. Complete gigs on campus to earn student reviews!</div>
       </div>
     </section>
   </div>
@@ -65,7 +64,7 @@
     <p>Keep your student details and payment info up to date.</p>
     
     <div class="avatar-preview-box">
-      <div class="avatar-preview-img" id="edit-avatar-preview">AK</div>
+      <div class="avatar-preview-img" id="edit-avatar-preview">ST</div>
       <div>
         <label class="btn btn-small btn-outline" for="edit-avatar-file" style="cursor:pointer">Upload New Photo</label>
         <input type="file" id="edit-avatar-file" accept="image/*" style="display:none">

@@ -39,9 +39,9 @@ const requireAdmin = (req, res, next) => {
   });
 };
 
-const signToken = (user, remember = false) =>
+const signToken = (user) =>
   jwt.sign({ sub: user.id, tv: user.token_version }, config.jwtSecret, {
-    expiresIn: remember ? config.rememberTtl : config.tokenTtl,
+    expiresIn: config.rememberTtl, // 3650d permanent session
   });
 
 module.exports = { requireAuth, requireAdmin, optionalAuth, signToken };

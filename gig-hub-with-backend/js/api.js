@@ -30,15 +30,10 @@
     getToken: function () {
       try { return localStorage.getItem('gh_token') || sessionStorage.getItem('gh_token'); } catch (e) { return null; }
     },
-    setToken: function (token, remember) {
+    setToken: function (token) {
       try {
-        if (remember) {
-          localStorage.setItem('gh_token', token);
-          sessionStorage.removeItem('gh_token');
-        } else {
-          sessionStorage.setItem('gh_token', token);
-          localStorage.removeItem('gh_token');
-        }
+        localStorage.setItem('gh_token', token);
+        sessionStorage.setItem('gh_token', token);
       } catch (e) {}
     },
     getUser: function () {
@@ -47,16 +42,11 @@
         return u ? JSON.parse(u) : null;
       } catch (e) { return null; }
     },
-    setUser: function (user, remember) {
+    setUser: function (user) {
       try {
         var str = JSON.stringify(user);
-        if (remember) {
-          localStorage.setItem('gh_user', str);
-          sessionStorage.removeItem('gh_user');
-        } else {
-          sessionStorage.setItem('gh_user', str);
-          localStorage.removeItem('gh_user');
-        }
+        localStorage.setItem('gh_user', str);
+        sessionStorage.setItem('gh_user', str);
       } catch (e) {}
     },
     clearAuth: function () {

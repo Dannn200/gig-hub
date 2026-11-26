@@ -63,6 +63,9 @@
   }
 
   function suggestHTML(list) {
+    if (!list || !list.length) {
+      return '<div class="empty" style="padding:18px;text-align:center;color:var(--ink-3);font-size:13px">No community gigs posted yet. <a href="post-gig.html" style="color:var(--brand);font-weight:700">Post a gig!</a></div>';
+    }
     return list.map(function (x) {
       var g = x.g, href = "gig-details.html?id=" + encodeURIComponent(g.id);
       return '<a class="suggest-item" href="' + href + '"><span class="mini-icon ' + (g.tone || "orange") + '">' + (g.icon || "💡") + '</span><div><b>' + esc(g.title) + '</b><small>' + esc(g.loc || "Campus") + ' · ' + esc(g.when || "Flexible") + '</small><br><span class="why">✨ ' + esc(x.why) + '</span></div><strong>' + rupee(g.price) + '</strong></a>';
@@ -416,7 +419,7 @@
     }
 
     function showDemoPrompt() {
-      var defaultEmail = isRegister ? "newstudent@university.edu" : "ayush@university.edu";
+      var defaultEmail = isRegister ? "newstudent@university.edu" : "student@university.edu";
       var mockEmail = prompt("Sign in with Google Account (University email):", defaultEmail);
       if (!mockEmail) return;
       var mockName = prompt("Your Name:", "Google Student") || "Google Student";
@@ -544,21 +547,18 @@
 
       // Metrics
       var m = dashData.metrics || {};
-      var activeEl = $("#m-active");
-      if (activeEl) activeEl.textContent = pad(m.activeGigs || 4);
-
       var cards = $$(".metric-card strong");
       if (cards.length >= 4) {
-        cards[0].textContent = pad(m.activeGigs || 4);
-        cards[1].textContent = pad(m.completedGigs || 18);
-        cards[2].textContent = rupee(m.totalEarned || 4850);
-        cards[3].textContent = (m.rating ? m.rating.toFixed(1) : "4.8");
+        cards[0].textContent = pad(m.activeGigs != null ? m.activeGigs : 0);
+        cards[1].textContent = pad(m.completedGigs != null ? m.completedGigs : 0);
+        cards[2].textContent = rupee(m.totalEarned != null ? m.totalEarned : 0);
+        cards[3].textContent = m.rating != null ? m.rating.toFixed(1) : "—";
       }
 
       // Balance Card
       var balStrong = $(".balance-card strong");
       if (balStrong && dashData.wallet) {
-        balStrong.textContent = rupee(dashData.wallet.balance);
+        balStrong.textContent = rupee(dashData.wallet.balance != null ? dashData.wallet.balance : 0);
       }
       var balP = $(".balance-card p");
       if (balP && dashData.wallet) {
@@ -566,13 +566,15 @@
       }
 
       // Recommended gigs
-      if (dashData.recommended && dashData.recommended.length) {
-        var recBox = $(".dashboard-grid .gig-list");
-        if (recBox) {
+      var recBox = $(".dashboard-grid .gig-list");
+      if (recBox) {
+        if (dashData.recommended && dashData.recommended.length) {
           recBox.innerHTML = dashData.recommended.map(function (g) {
             var formatted = API.formatGig(g);
             return '<article class="gig-row"><span class="mini-icon ' + (formatted.tone || "purple") + '">' + (formatted.icon || "💻") + '</span><div class="gig-main"><h3>' + esc(formatted.title) + '</h3><p>' + esc(formatted.loc) + ' · ' + esc(formatted.when) + '</p><div class="tags"><span>' + esc(formatted.pillLabel) + '</span><span>' + rupee(formatted.price) + '</span></div></div><strong>' + rupee(formatted.price) + '</strong><a class="btn btn-small btn-outline" href="gig-details.html?id=' + encodeURIComponent(formatted.id) + '">View</a></article>';
           }).join("");
+        } else {
+          recBox.innerHTML = '<div class="empty" style="padding:24px;text-align:center;color:var(--ink-3)">No open gigs posted on campus yet.<br><br><a class="btn btn-small btn-primary" href="post-gig.html">＋ Post the first gig</a></div>';
         }
       }
     }
@@ -1055,9 +1057,9 @@
       var summary = res.summary || {};
       var cards = $$(".metric-card strong");
       if (cards.length >= 3) {
-        cards[0].textContent = rupee(summary.totalEarned);
-        cards[1].textContent = pad(summary.completedGigs);
-        cards[2].textContent = (summary.averageRating ? summary.averageRating.toFixed(1) : "4.8");
+        cards[0].textContent = rupee(summary.totalEarned != null ? summary.totalEarned : 0);
+        cards[1].textContent = pad(summary.completedGigs != null ? summary.completedGigs : 0);
+        cards[2].textContent = summary.averageRating != null ? summary.averageRating.toFixed(1) : "—";
       }
 
       if (res.transactions && res.transactions.length) {
@@ -1065,6 +1067,8 @@
           var isPos = tx.signedAmount > 0;
           return '<tr><td><b>' + esc(tx.title) + '</b><small>' + esc(tx.subtitle) + '</small></td><td><span class="pill purple-pill">' + esc(tx.category || "General") + '</span></td><td>' + new Date(tx.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) + '</td><td><span class="status ' + (tx.status === 'completed' ? 'success' : 'pending') + '">' + esc(tx.status) + '</span></td><td class="amount ' + (isPos ? 'positive' : '') + '">' + (isPos ? '+' : '') + rupee(tx.signedAmount) + '</td></tr>';
         }).join("");
+      } else {
+        tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--ink-3)">No gig transactions yet.</td></tr>';
       }
 
       var repLink = $(".table-panel .panel-head a");
@@ -1118,10 +1122,29 @@
 
       var statGrid = $$(".profile-stat-grid strong");
       if (statGrid.length >= 4) {
-        statGrid[0].textContent = pad(stats.completedGigs || 0);
-        statGrid[1].textContent = pad(stats.activeGigs || 0);
-        statGrid[2].textContent = rupee(stats.totalEarned || 0);
-        statGrid[3].textContent = (stats.trustScore || 96) + "%";
+        statGrid[0].textContent = pad(stats.completedGigs != null ? stats.completedGigs : 0);
+        statGrid[1].textContent = pad(stats.activeGigs != null ? stats.activeGigs : 0);
+        statGrid[2].textContent = rupee(stats.totalEarned != null ? stats.totalEarned : 0);
+        statGrid[3].textContent = (stats.trustScore != null ? stats.trustScore : 100) + "%";
+      }
+
+      var avgRatingEl = $("#profile-avg-rating");
+      if (avgRatingEl) {
+        avgRatingEl.textContent = stats.rating != null ? "★ " + stats.rating.toFixed(1) : "★ —";
+      }
+
+      var reviewsBox = $("#reviews-list");
+      if (reviewsBox) {
+        if (res.reviews && res.reviews.length) {
+          reviewsBox.innerHTML = res.reviews.map(function (r) {
+            var stars = "★ ".repeat(r.rating || 5);
+            var revInitials = (r.reviewer && r.reviewer.initials) || "ST";
+            var revName = (r.reviewer && r.reviewer.name) || "Verified Student";
+            return '<div class="review"><div class="review-avatar">' + esc(revInitials) + '</div><div><b>' + esc(revName) + '</b><span>' + esc(stars) + '</span><p>“' + esc(r.comment) + '”</p></div></div>';
+          }).join("");
+        } else {
+          reviewsBox.innerHTML = '<div style="padding:24px;text-align:center;color:var(--ink-3)">No reviews yet. Complete gigs on campus to earn student reviews!</div>';
+        }
       }
 
       // Direct avatar photo upload
