@@ -306,6 +306,24 @@
       }
     };
 
+    // Check for Google OAuth redirect hash (e.g. #id_token=... or #error=...)
+    if (window.location.hash && window.location.hash.length > 1) {
+      try {
+        var hashParams = new URLSearchParams(window.location.hash.substring(1));
+        var idToken = hashParams.get("id_token");
+        var oauthErr = hashParams.get("error");
+        var errDesc = hashParams.get("error_description");
+
+        if (idToken) {
+          history.replaceState(null, "", window.location.pathname + window.location.search);
+          window.handleGoogleCredential({ credential: idToken });
+          return;
+        } else if (oauthErr) {
+          showAlert("Google sign-in error: " + (errDesc || oauthErr), true);
+        }
+      } catch (e) {}
+    }
+
     function attachGis() {
       if (!googleClientId) return;
       if (!window.google || !window.google.accounts || !window.google.accounts.id) {
@@ -345,6 +363,24 @@
       attachGis();
     }
 
+    function openGoogleOAuth() {
+      if (!googleClientId) {
+        showDemoPrompt();
+        return;
+      }
+      var redirectUri = window.location.origin + window.location.pathname;
+      var nonce = Math.random().toString(36).substring(2);
+      var authUrl = "https://accounts.google.com/o/oauth2/v2/auth?" +
+        "client_id=" + encodeURIComponent(googleClientId) +
+        "&redirect_uri=" + encodeURIComponent(redirectUri) +
+        "&response_type=id_token" +
+        "&scope=" + encodeURIComponent("openid email profile") +
+        "&nonce=" + nonce +
+        "&prompt=select_account";
+
+      window.location.href = authUrl;
+    }
+
     function showDemoPrompt() {
       var mockEmail = prompt((isRegister ? "Sign up" : "Sign in") + " with Google Account (University email):", isRegister ? "newstudent@university.edu" : "ayush@university.edu");
       if (!mockEmail) return;
@@ -361,21 +397,9 @@
     }
 
     if (customBtn) {
-      customBtn.addEventListener("click", function () {
-        if (googleClientId && window.google && window.google.accounts && window.google.accounts.id) {
-          try {
-            window.google.accounts.id.prompt(function (notification) {
-              if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                showDemoPrompt();
-              }
-            });
-            return;
-          } catch (e) {
-            showDemoPrompt();
-            return;
-          }
-        }
-        showDemoPrompt();
+      customBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        openGoogleOAuth();
       });
     }
   }
