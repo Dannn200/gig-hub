@@ -195,20 +195,11 @@
       }
     });
 
-    // Check notifications for bell badge
-    if (token && API) {
-      try {
-        var notifRes = await API.notifications.unreadCount();
-        var bell = $(".icon-link");
-        if (bell && notifRes.unreadCount > 0 && !$(".ping", bell)) {
-          var p = document.createElement("span");
-          p.className = "ping";
-          bell.appendChild(p);
-        }
-      } catch (e) {}
+    // Scroll reveal observer
+    function revealAll() {
+      $$(".reveal").forEach(function (el) { el.classList.add("in"); });
     }
 
-    // Scroll reveal observer
     if ("IntersectionObserver" in window) {
       var io = new IntersectionObserver(function (es) {
         es.forEach(function (e) {
@@ -217,10 +208,24 @@
             io.unobserve(e.target);
           }
         });
-      }, { threshold: 0.12 });
+      }, { threshold: 0.05, rootMargin: "60px" });
       $$(".reveal").forEach(function (el) { io.observe(el); });
     } else {
-      $$(".reveal").forEach(function (el) { el.classList.add("in"); });
+      revealAll();
+    }
+    // Safety fallback: ensure all reveal elements are visible after 1.2s
+    setTimeout(revealAll, 1200);
+
+    // Check notifications for bell badge (non-blocking)
+    if (token && API) {
+      API.notifications.unreadCount().then(function (notifRes) {
+        var bell = $(".icon-link");
+        if (bell && notifRes && notifRes.unreadCount > 0 && !$(".ping", bell)) {
+          var p = document.createElement("span");
+          p.className = "ping";
+          bell.appendChild(p);
+        }
+      }).catch(function () {});
     }
   }
 
@@ -250,7 +255,7 @@
     t.innerHTML = gigs.map(function (g) {
       return g.cat === "food" || g.rawCat === "food" ? foodCard(g) : gigCard(g);
     }).join("");
-    t.className = "latest-grid";
+    t.classList.add("latest-grid", "in");
     bindSave(t);
 
     // Dynamic animated counters
@@ -272,53 +277,6 @@
     });
   };
 
-  // 2. Login Page (login.html)
-  pages.login = async function () {
-    var form = $("#login-form");
-    var alertBox = $("#auth-alert");
-    var demoBtn = $("#demo-fill-btn");
-    var googleBtn = $("#google-btn");
-
-    function showAlert(msg, isError) {
-      if (!alertBox) return;
-      alertBox.textContent = msg;
-      alertBox.className = "auth-alert " + (isError ? "error" : "success");
-      alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    // Autofill demo credentials
-    if (demoBtn) {
-      demoBtn.addEventListener("click", function () {
-        $("#email").value = "ayush@university.edu";
-        $("#password").value = "Password123";
-        toast("Autofilled demo credentials");
-      });
-    }
-
-    // Standard Form Login
-    if (form) {
-      form.addEventListener("submit", async function (e) {
-        e.preventDefault();
-        var email = $("#email").value.trim();
-        var password = $("#password").value;
-        var remember = $("#remember") ? $("#remember").checked : true;
-        var submitBtn = $("#login-submit-btn");
-
-        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Logging in..."; }
-
-        try {
-          var res = await API.auth.login({ email: email, password: password, remember: remember });
-          showAlert("Welcome back, " + res.user.name + "! Redirecting...", false);
-          toast("Logged in successfully!");
-          var nextUrl = qs("next") || "dashboard.html";
-          setTimeout(function () { location.href = nextUrl; }, 600);
-        } catch (err) {
-          showAlert(err.message, true);
-          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Log in →"; }
-        }
-      });
-    }
-
   // Helper for Google Identity Services (GIS) on Login & Register
   async function initGoogleAuth(opts) {
     opts = opts || {};
@@ -328,10 +286,12 @@
     var showAlert = opts.showAlert || function () {};
 
     var googleClientId = "";
-    try {
-      var cfg = await API.auth.getConfig();
-      googleClientId = cfg.googleClientId || "";
-    } catch (e) {}
+    if (API && API.auth && API.auth.getConfig) {
+      try {
+        var cfg = await API.auth.getConfig();
+        googleClientId = cfg.googleClientId || "";
+      } catch (e) {}
+    }
 
     // Success callback when user signs in through Google
     window.handleGoogleCredential = async function (response) {
@@ -369,7 +329,12 @@
             logo_alignment: "left",
             width: 320
           });
-          if (customBtn) customBtn.style.display = "none";
+          // When official button renders, hide custom button
+          setTimeout(function () {
+            if (container && container.firstElementChild) {
+              if (customBtn) customBtn.style.display = "none";
+            }
+          }, 350);
         }
       } catch (e) {
         console.warn("Google button render error:", e);
@@ -380,26 +345,37 @@
       attachGis();
     }
 
+    function showDemoPrompt() {
+      var mockEmail = prompt((isRegister ? "Sign up" : "Sign in") + " with Google Account (University email):", isRegister ? "newstudent@university.edu" : "ayush@university.edu");
+      if (!mockEmail) return;
+      var mockName = prompt("Your Name:", "Google User") || "Google Student";
+
+      API.auth.googleLogin({ mockEmail: mockEmail, mockName: mockName, remember: true })
+        .then(function (res) {
+          toast("Google sign-in successful!");
+          setTimeout(function () { location.href = qs("next") || "dashboard.html"; }, 500);
+        })
+        .catch(function (err) {
+          showAlert(err.message, true);
+        });
+    }
+
     if (customBtn) {
       customBtn.addEventListener("click", function () {
         if (googleClientId && window.google && window.google.accounts && window.google.accounts.id) {
-          window.google.accounts.id.prompt();
-          return;
+          try {
+            window.google.accounts.id.prompt(function (notification) {
+              if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                showDemoPrompt();
+              }
+            });
+            return;
+          } catch (e) {
+            showDemoPrompt();
+            return;
+          }
         }
-
-        // Demo fallback if Google Client ID is not configured
-        var mockEmail = prompt((isRegister ? "Sign up" : "Sign in") + " with Google Account (University email):", isRegister ? "newstudent@university.edu" : "ayush@university.edu");
-        if (!mockEmail) return;
-        var mockName = prompt("Your Name:", "Google User") || "Google Student";
-
-        API.auth.googleLogin({ mockEmail: mockEmail, mockName: mockName, remember: true })
-          .then(function (res) {
-            toast("Google sign-in successful!");
-            setTimeout(function () { location.href = qs("next") || "dashboard.html"; }, 500);
-          })
-          .catch(function (err) {
-            showAlert(err.message, true);
-          });
+        showDemoPrompt();
       });
     }
   }
@@ -1046,9 +1022,15 @@
   };
 
   /* ---------- Initialization on DOM ready ---------- */
-  document.addEventListener("DOMContentLoaded", function () {
+  function boot() {
     initGlobal();
     var p = document.body.dataset.page;
     if (p && pages[p]) pages[p]();
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
 })();
