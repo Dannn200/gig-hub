@@ -319,76 +319,150 @@
       });
     }
 
-    // Google Sign-In Setup
+  // Helper for Google Identity Services (GIS) on Login & Register
+  async function initGoogleAuth(opts) {
+    opts = opts || {};
+    var container = $(opts.containerId);
+    var customBtn = $(opts.buttonId);
+    var isRegister = !!opts.isRegister;
+    var showAlert = opts.showAlert || function () {};
+
     var googleClientId = "";
     try {
       var cfg = await API.auth.getConfig();
-      googleClientId = cfg.googleClientId;
+      googleClientId = cfg.googleClientId || "";
     } catch (e) {}
 
-    // Callback for Google Identity Services
+    // Success callback when user signs in through Google
     window.handleGoogleCredential = async function (response) {
+      if (!response || !response.credential) return;
       try {
         var res = await API.auth.googleLogin({ credential: response.credential, remember: true });
-        showAlert("Google sign-in successful! Redirecting...", false);
         toast("Welcome, " + res.user.name + "!");
         var nextUrl = qs("next") || "dashboard.html";
-        setTimeout(function () { location.href = nextUrl; }, 600);
+        setTimeout(function () { location.href = nextUrl; }, 500);
       } catch (err) {
         showAlert(err.message, true);
       }
     };
 
-    // If client ID is available and GIS script loaded, initialize official GIS
-    if (googleClientId && window.google && window.google.accounts && window.google.accounts.id) {
+    function attachGis() {
+      if (!googleClientId) return;
+      if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+        setTimeout(attachGis, 150);
+        return;
+      }
+
       try {
         window.google.accounts.id.initialize({
           client_id: googleClientId,
-          callback: window.handleGoogleCredential
+          callback: window.handleGoogleCredential,
+          auto_select: false
         });
-        var gisBox = $(".g_id_signin");
-        if (gisBox) {
-          window.google.accounts.id.renderButton(gisBox, {
+
+        if (container) {
+          window.google.accounts.id.renderButton(container, {
             theme: "outline",
             size: "large",
-            text: "signin_with",
-            width: "100%"
+            text: isRegister ? "signup_with" : "signin_with",
+            shape: "rectangular",
+            logo_alignment: "left",
+            width: 320
           });
+          if (customBtn) customBtn.style.display = "none";
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn("Google button render error:", e);
+      }
     }
 
-    // Google Sign-In Button Click Handler (works with or without GIS credentials)
-    if (googleBtn) {
-      googleBtn.addEventListener("click", async function () {
+    if (googleClientId) {
+      attachGis();
+    }
+
+    if (customBtn) {
+      customBtn.addEventListener("click", function () {
         if (googleClientId && window.google && window.google.accounts && window.google.accounts.id) {
           window.google.accounts.id.prompt();
           return;
         }
 
-        // Demo / Development Google Sign-In Prompt
-        var mockEmail = prompt("Sign in with Google Account (University email):", "ayush@university.edu");
+        // Demo fallback if Google Client ID is not configured
+        var mockEmail = prompt((isRegister ? "Sign up" : "Sign in") + " with Google Account (University email):", isRegister ? "newstudent@university.edu" : "ayush@university.edu");
         if (!mockEmail) return;
-        var mockName = prompt("Your Name:", "Ayush Kumar") || "Google Student";
+        var mockName = prompt("Your Name:", "Google User") || "Google Student";
+
+        API.auth.googleLogin({ mockEmail: mockEmail, mockName: mockName, remember: true })
+          .then(function (res) {
+            toast("Google sign-in successful!");
+            setTimeout(function () { location.href = qs("next") || "dashboard.html"; }, 500);
+          })
+          .catch(function (err) {
+            showAlert(err.message, true);
+          });
+      });
+    }
+  }
+
+  // 2. Login Page (login.html)
+  pages.login = async function () {
+    var form = $("#login-form");
+    var alertBox = $("#auth-alert");
+    var demoBtn = $("#demo-fill-btn");
+
+    function showAlert(msg, isError) {
+      if (!alertBox) return;
+      alertBox.textContent = msg;
+      alertBox.className = "auth-alert " + (isError ? "error" : "success");
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Autofill demo credentials
+    if (demoBtn) {
+      demoBtn.addEventListener("click", function () {
+        $("#email").value = "ayush@university.edu";
+        $("#password").value = "Password123";
+        toast("Autofilled demo credentials");
+      });
+    }
+
+    // Standard Form Login
+    if (form) {
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var email = $("#email").value.trim();
+        var password = $("#password").value;
+        var remember = $("#remember") ? $("#remember").checked : true;
+        var submitBtn = $("#login-submit-btn");
+
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Logging in..."; }
 
         try {
-          var res = await API.auth.googleLogin({ mockEmail: mockEmail, mockName: mockName, remember: true });
-          showAlert("Signed in via Google as " + res.user.name + "! Redirecting...", false);
-          toast("Google sign-in successful!");
+          var res = await API.auth.login({ email: email, password: password, remember: remember });
+          showAlert("Welcome back, " + res.user.name + "! Redirecting...", false);
+          toast("Logged in successfully!");
           var nextUrl = qs("next") || "dashboard.html";
           setTimeout(function () { location.href = nextUrl; }, 600);
         } catch (err) {
           showAlert(err.message, true);
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Log in →"; }
         }
       });
     }
+
+    // Google Sign-In setup
+    await initGoogleAuth({
+      containerId: "#google-signin-container",
+      buttonId: "#google-btn",
+      isRegister: false,
+      showAlert: showAlert
+    });
   };
 
   // 3. Register Page (register.html)
   pages.register = async function () {
     var form = $("#register-form");
     var alertBox = $("#auth-alert");
-    var googleBtn = $("#reg-google-btn");
 
     function showAlert(msg, isError) {
       if (!alertBox) return;
@@ -420,22 +494,13 @@
       });
     }
 
-    if (googleBtn) {
-      googleBtn.addEventListener("click", async function () {
-        var mockEmail = prompt("Sign up with Google Account (University email):", "newstudent@university.edu");
-        if (!mockEmail) return;
-        var mockName = prompt("Your Full Name:", "Student Name") || "New Student";
-
-        try {
-          var res = await API.auth.googleLogin({ mockEmail: mockEmail, mockName: mockName, remember: true });
-          showAlert("Account created via Google! Redirecting...", false);
-          toast("Welcome to Gig Hub!");
-          setTimeout(function () { location.href = "dashboard.html"; }, 600);
-        } catch (err) {
-          showAlert(err.message, true);
-        }
-      });
-    }
+    // Google Sign-Up setup
+    await initGoogleAuth({
+      containerId: "#google-signup-container",
+      buttonId: "#reg-google-btn",
+      isRegister: true,
+      showAlert: showAlert
+    });
   };
 
   // 4. Dashboard (dashboard.html)
