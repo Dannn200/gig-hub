@@ -277,11 +277,11 @@
     });
   };
 
-  // Helper for Google Identity Services (GIS) on Login & Register
+  // Helper for Google Authentication on Login & Register
   async function initGoogleAuth(opts) {
     opts = opts || {};
-    var container = $(opts.containerId);
     var customBtn = $(opts.buttonId);
+    var quickBtn = $(opts.quickBtnId);
     var isRegister = !!opts.isRegister;
     var showAlert = opts.showAlert || function () {};
 
@@ -300,67 +300,29 @@
         var res = await API.auth.googleLogin({ credential: response.credential, remember: true });
         toast("Welcome, " + res.user.name + "!");
         var nextUrl = qs("next") || "dashboard.html";
-        setTimeout(function () { location.href = nextUrl; }, 500);
+        setTimeout(function () { location.href = nextUrl; }, 400);
       } catch (err) {
         showAlert(err.message, true);
       }
     };
 
-    // Check for Google OAuth redirect hash (e.g. #id_token=... or #error=...)
+    // Check for Google OAuth redirect hash parameters (e.g. #access_token=... or #id_token=... or #error=...)
     if (window.location.hash && window.location.hash.length > 1) {
       try {
         var hashParams = new URLSearchParams(window.location.hash.substring(1));
-        var idToken = hashParams.get("id_token");
+        var token = hashParams.get("access_token") || hashParams.get("id_token");
         var oauthErr = hashParams.get("error");
         var errDesc = hashParams.get("error_description");
 
-        if (idToken) {
+        if (token) {
           history.replaceState(null, "", window.location.pathname + window.location.search);
-          window.handleGoogleCredential({ credential: idToken });
+          toast("Authenticated with Google! Logging in...");
+          window.handleGoogleCredential({ credential: token });
           return;
         } else if (oauthErr) {
-          showAlert("Google sign-in error: " + (errDesc || oauthErr), true);
+          showAlert("Google Sign-In Error: " + (errDesc || oauthErr) + " (Check Authorized redirect URIs in Google Cloud Console)", true);
         }
       } catch (e) {}
-    }
-
-    function attachGis() {
-      if (!googleClientId) return;
-      if (!window.google || !window.google.accounts || !window.google.accounts.id) {
-        setTimeout(attachGis, 150);
-        return;
-      }
-
-      try {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: window.handleGoogleCredential,
-          auto_select: false
-        });
-
-        if (container) {
-          window.google.accounts.id.renderButton(container, {
-            theme: "outline",
-            size: "large",
-            text: isRegister ? "signup_with" : "signin_with",
-            shape: "rectangular",
-            logo_alignment: "left",
-            width: 320
-          });
-          // When official button renders, hide custom button
-          setTimeout(function () {
-            if (container && container.firstElementChild) {
-              if (customBtn) customBtn.style.display = "none";
-            }
-          }, 350);
-        }
-      } catch (e) {
-        console.warn("Google button render error:", e);
-      }
-    }
-
-    if (googleClientId) {
-      attachGis();
     }
 
     function openGoogleOAuth() {
@@ -369,27 +331,26 @@
         return;
       }
       var redirectUri = window.location.origin + window.location.pathname;
-      var nonce = Math.random().toString(36).substring(2);
       var authUrl = "https://accounts.google.com/o/oauth2/v2/auth?" +
         "client_id=" + encodeURIComponent(googleClientId) +
         "&redirect_uri=" + encodeURIComponent(redirectUri) +
-        "&response_type=id_token" +
+        "&response_type=token" +
         "&scope=" + encodeURIComponent("openid email profile") +
-        "&nonce=" + nonce +
         "&prompt=select_account";
 
       window.location.href = authUrl;
     }
 
     function showDemoPrompt() {
-      var mockEmail = prompt((isRegister ? "Sign up" : "Sign in") + " with Google Account (University email):", isRegister ? "newstudent@university.edu" : "ayush@university.edu");
+      var defaultEmail = isRegister ? "newstudent@university.edu" : "ayush@university.edu";
+      var mockEmail = prompt("Sign in with Google Account (University email):", defaultEmail);
       if (!mockEmail) return;
-      var mockName = prompt("Your Name:", "Google User") || "Google Student";
+      var mockName = prompt("Your Name:", "Google Student") || "Google Student";
 
       API.auth.googleLogin({ mockEmail: mockEmail, mockName: mockName, remember: true })
         .then(function (res) {
-          toast("Google sign-in successful!");
-          setTimeout(function () { location.href = qs("next") || "dashboard.html"; }, 500);
+          toast("Signed in as " + res.user.name);
+          setTimeout(function () { location.href = qs("next") || "dashboard.html"; }, 400);
         })
         .catch(function (err) {
           showAlert(err.message, true);
@@ -400,6 +361,23 @@
       customBtn.addEventListener("click", function (e) {
         e.preventDefault();
         openGoogleOAuth();
+      });
+    }
+
+    // 1-Click Instant Demo Login
+    if (quickBtn) {
+      quickBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        var demoEmail = isRegister ? "newstudent@university.edu" : "ayush@university.edu";
+        var demoName = isRegister ? "New Student" : "Ayush Kumar";
+        API.auth.googleLogin({ mockEmail: demoEmail, mockName: demoName, remember: true })
+          .then(function (res) {
+            toast("Instant demo login successful!");
+            setTimeout(function () { location.href = qs("next") || "dashboard.html"; }, 300);
+          })
+          .catch(function (err) {
+            showAlert(err.message, true);
+          });
       });
     }
   }
@@ -452,8 +430,8 @@
 
     // Google Sign-In setup
     await initGoogleAuth({
-      containerId: "#google-signin-container",
       buttonId: "#google-btn",
+      quickBtnId: "#quick-google-btn",
       isRegister: false,
       showAlert: showAlert
     });
@@ -496,8 +474,8 @@
 
     // Google Sign-Up setup
     await initGoogleAuth({
-      containerId: "#google-signup-container",
       buttonId: "#reg-google-btn",
+      quickBtnId: "#reg-quick-google-btn",
       isRegister: true,
       showAlert: showAlert
     });

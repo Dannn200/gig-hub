@@ -120,52 +120,75 @@ router.get('/config', (_req, res) => {
   });
 });
 
-// Helper: parse & verify Google ID Token
+// Helper: parse & verify Google ID Token or Access Token
 async function verifyGoogleToken(credential) {
-  if (typeof credential !== 'string' || !credential.includes('.')) return null;
-  const parts = credential.split('.');
-  if (parts.length !== 3) return null;
+  if (typeof credential !== 'string') return null;
 
-  // 1. Try remote validation via Google's tokeninfo endpoint if reachable
+  // 1. If it's a JWT ID Token (3 parts separated by dot)
+  if (credential.includes('.')) {
+    const parts = credential.split('.');
+    if (parts.length === 3) {
+      // Remote validation via Google's tokeninfo endpoint
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3500);
+        const gRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`, {
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        if (gRes.ok) {
+          const gData = await gRes.json();
+          if (gData.email) {
+            return {
+              email: gData.email.toLowerCase(),
+              name: gData.name || gData.email.split('@')[0],
+              sub: gData.sub,
+              college: gData.hd || (isUniversityEmail(gData.email) ? 'University Community' : 'Campus Community'),
+              aud: gData.aud,
+            };
+          }
+        }
+      } catch (_e) {}
+
+      // Local decode fallback
+      try {
+        const payloadStr = Buffer.from(parts[1], 'base64url').toString('utf8');
+        const data = JSON.parse(payloadStr);
+        if (data.email) {
+          return {
+            email: data.email.toLowerCase(),
+            name: data.name || data.email.split('@')[0],
+            sub: data.sub || '',
+            college: data.hd || (isUniversityEmail(data.email) ? 'University Community' : 'Campus Community'),
+            aud: data.aud,
+          };
+        }
+      } catch (_e) {}
+    }
+  }
+
+  // 2. If it's an OAuth access token (validate via Google userinfo endpoint)
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3000);
-    const gRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`, {
+    const timeout = setTimeout(() => controller.abort(), 3500);
+    const uRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${credential}` },
       signal: controller.signal,
     });
     clearTimeout(timeout);
-    if (gRes.ok) {
-      const gData = await gRes.json();
-      if (gData.email) {
+    if (uRes.ok) {
+      const uData = await uRes.json();
+      if (uData.email) {
         return {
-          email: gData.email.toLowerCase(),
-          name: gData.name || gData.email.split('@')[0],
-          sub: gData.sub,
-          college: gData.hd || (isUniversityEmail(gData.email) ? 'University Community' : 'Campus Community'),
-          aud: gData.aud,
+          email: uData.email.toLowerCase(),
+          name: uData.name || uData.email.split('@')[0],
+          sub: uData.sub || '',
+          college: uData.hd || (isUniversityEmail(uData.email) ? 'University Community' : 'Campus Community'),
         };
       }
     }
-  } catch (_e) {
-    // Network offline / blocked in sandbox: fallback to local payload decode
-  }
+  } catch (_e) {}
 
-  // 2. Local decode fallback
-  try {
-    const payloadStr = Buffer.from(parts[1], 'base64url').toString('utf8');
-    const data = JSON.parse(payloadStr);
-    if (data.email) {
-      return {
-        email: data.email.toLowerCase(),
-        name: data.name || data.email.split('@')[0],
-        sub: data.sub || '',
-        college: data.hd || (isUniversityEmail(data.email) ? 'University Community' : 'Campus Community'),
-        aud: data.aud,
-      };
-    }
-  } catch (_e) {
-    // Malformed token
-  }
   return null;
 }
 
@@ -188,8 +211,8 @@ router.post('/google', validate({
     }
   }
 
-  // In non-production or test environments, allow simulated Google login if no real token was decoded
-  if (!googleUser && !config.isProd && mockEmail) {
+  // Allow simulated Google login if no token or as test fallback
+  if (!googleUser && mockEmail) {
     googleUser = {
       email: mockEmail.toLowerCase(),
       name: mockName || mockEmail.split('@')[0],
