@@ -197,3 +197,45 @@ test('reminders fire once for gigs starting within 24h', async () => {
   assert.ok(sent >= 1);
   assert.equal(sendDueReminders(new Date(Date.now() - 10 * 3600 * 1000)), 0);
 });
+
+test('admin portal & profile updates (avatar & upiId)', async () => {
+  const student = await signup('Sam Student', 'sam@test.edu');
+
+  // Student updates profile with avatarUrl and upiId
+  const upd = await call('PATCH', '/users/me', {
+    token: student.token,
+    body: { bio: 'Cool bio', upiId: 'sam@oksbi', avatarUrl: 'data:image/jpeg;base64,12345' },
+  });
+  assert.equal(upd.status, 200);
+  assert.equal(upd.body.user.upiId, 'sam@oksbi');
+  assert.equal(upd.body.user.avatarUrl, 'data:image/jpeg;base64,12345');
+
+  // Student cannot access admin portal
+  const failStats = await call('GET', '/admin/stats', { token: student.token });
+  assert.equal(failStats.status, 403);
+
+  // Admin login and access
+  const adminLogin = await call('POST', '/auth/login', { body: { email: 'admin@university.edu', password: 'Admin@123' } });
+  assert.equal(adminLogin.status, 200);
+  const adminToken = adminLogin.body.token;
+
+  // Admin stats
+  const statsRes = await call('GET', '/admin/stats', { token: adminToken });
+  assert.equal(statsRes.status, 200);
+  assert.ok(statsRes.body.totalUsers >= 2);
+
+  // Admin users list
+  const usersRes = await call('GET', '/admin/users', { token: adminToken });
+  assert.equal(usersRes.status, 200);
+  assert.ok(usersRes.body.users.some((u) => u.email === 'sam@test.edu'));
+
+  // Admin user inspect
+  const inspectRes = await call('GET', `/admin/users/${student.id}`, { token: adminToken });
+  assert.equal(inspectRes.status, 200);
+  assert.equal(inspectRes.body.user.upiId, 'sam@oksbi');
+
+  // Admin role switch
+  const roleRes = await call('PATCH', `/admin/users/${student.id}/role`, { token: adminToken, body: { role: 'admin' } });
+  assert.equal(roleRes.status, 200);
+  assert.equal(roleRes.body.role, 'admin');
+});

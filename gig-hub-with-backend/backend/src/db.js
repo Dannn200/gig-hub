@@ -23,6 +23,9 @@ CREATE TABLE IF NOT EXISTS users (
   verified        INTEGER NOT NULL DEFAULT 0,
   balance         INTEGER NOT NULL DEFAULT 0 CHECK (balance >= 0),
   abandoned_count INTEGER NOT NULL DEFAULT 0,
+  role            TEXT NOT NULL DEFAULT 'student',
+  avatar_url      TEXT NOT NULL DEFAULT '',
+  upi_id          TEXT NOT NULL DEFAULT '',
   token_version   INTEGER NOT NULL DEFAULT 0,
   reset_token_hash TEXT,
   reset_expires   TEXT,
@@ -106,5 +109,23 @@ CREATE TABLE IF NOT EXISTS gig_reminders (
   PRIMARY KEY (gig_id, user_id)
 );
 `);
+
+// Migrations for existing databases
+try { db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'student'"); } catch (e) {}
+try { db.exec("ALTER TABLE users ADD COLUMN avatar_url TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+try { db.exec("ALTER TABLE users ADD COLUMN upi_id TEXT NOT NULL DEFAULT ''"); } catch (e) {}
+
+// Ensure an admin user exists for the admin panel
+try {
+  const adminRow = db.prepare('SELECT id FROM users WHERE email = ?').get('admin@university.edu');
+  if (!adminRow) {
+    const bcrypt = require('bcryptjs');
+    db.prepare(`INSERT INTO users (name, email, password_hash, college, department, bio, verified, balance, role, upi_id)
+                VALUES (?,?,?,?,?,?,1,0,'admin',?)`)
+      .run('Campus Admin', 'admin@university.edu', bcrypt.hashSync('Admin@123', 10), 'University Administration', 'Administration', 'Campus GigHub System Administrator', 'admin@upi');
+  }
+} catch (e) {
+  // Ignored if table not ready yet
+}
 
 module.exports = db;

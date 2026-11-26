@@ -154,6 +154,30 @@
     return m < 1 ? "Just now" : m < 60 ? m + " minutes ago" : m < 1440 ? Math.round(m / 60) + " hours ago" : "Yesterday";
   }
 
+  function compressImage(file, maxSide, callback) {
+    if (!file || !file.type || !file.type.startsWith('image/')) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var img = new Image();
+      img.onload = function () {
+        var canvas = document.createElement("canvas");
+        var w = img.width, h = img.height;
+        if (w > h) {
+          if (w > maxSide) { h = Math.round(h * (maxSide / w)); w = maxSide; }
+        } else {
+          if (h > maxSide) { w = Math.round(w * (maxSide / h)); h = maxSide; }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        callback(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   /* ---------- Global navigation & auth guard ---------- */
   async function initGlobal() {
     var mb = $(".menu-btn"), nl = $(".nav-links");
@@ -168,13 +192,22 @@
     var user = API ? API.storage.getUser() : null;
     var page = document.body.dataset.page;
     var isAuthPage = page === 'login' || page === 'register';
-    var isProtected = ['dashboard', 'post', 'history', 'profile', 'notifications'].indexOf(page) > -1;
+    var isProtected = ['dashboard', 'post', 'history', 'profile', 'notifications', 'admin'].indexOf(page) > -1;
 
     // Check protected page access
     if (isProtected && !token) {
       var nextPath = (location.pathname.split('/').pop() || 'dashboard.html') + location.search;
       location.href = 'login.html?next=' + encodeURIComponent(nextPath);
       return;
+    }
+
+    // Admin portal security guard
+    if (page === 'admin') {
+      if (!user || user.role !== 'admin') {
+        toast("Admin privileges required to access Admin Portal");
+        location.href = "dashboard.html";
+        return;
+      }
     }
 
     // Redirect already logged-in users away from auth pages
@@ -188,10 +221,26 @@
     if (navActions) {
       if (token && user) {
         var initials = user.initials || (user.name ? user.name.slice(0, 2).toUpperCase() : "ST");
+        var avatarContent = user.avatarUrl
+          ? '<img src="' + esc(user.avatarUrl) + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover" alt="' + esc(user.name) + '">'
+          : esc(initials);
+        var adminBadge = user.role === 'admin'
+          ? '<a class="btn btn-small" href="admin.html" style="background:#fee2e2;color:#991b1b;font-weight:800;border:1px solid #fca5a5;padding:6px 11px">🛡️ Admin</a>'
+          : '';
+
         navActions.innerHTML =
+          adminBadge +
           '<a class="icon-link" href="notifications.html" aria-label="Notifications" title="Notifications">🔔</a>' +
-          '<a class="profile-mini" href="profile.html" aria-label="Profile" title="' + esc(user.name) + '">' + esc(initials) + '</a>' +
+          '<a class="profile-mini" href="profile.html" aria-label="Profile" title="' + esc(user.name) + '" style="overflow:hidden;padding:0">' + avatarContent + '</a>' +
           '<a class="btn btn-small btn-light" href="#" id="global-logout-btn">Log out</a>';
+
+        var navLinks = $(".nav-links");
+        if (navLinks && user.role === 'admin' && !navLinks.querySelector("a[href='admin.html']")) {
+          var adminNavLink = document.createElement("a");
+          adminNavLink.href = "admin.html";
+          adminNavLink.textContent = "Admin Portal";
+          navLinks.appendChild(adminNavLink);
+        }
 
         var navLogout = $("#global-logout-btn");
         if (navLogout) {
@@ -706,6 +755,15 @@
       cta = '<button class="btn btn-primary btn-lg btn-full" id="apply">Apply for this gig →</button>';
     }
 
+    var workerObj = (g.raw && g.raw.worker) || {};
+    var workerName = workerObj.name || (isWorker ? user.name : "Assigned Student");
+    var workerUpi = workerObj.upiId || "student@okhdfcbank";
+    var upiUri = "upi://pay?pa=" + encodeURIComponent(workerUpi) + "&pn=" + encodeURIComponent(workerName) + "&am=" + g.price + "&cu=INR&tn=" + encodeURIComponent("Gig Reward: " + g.title);
+
+    var upiCta = (g.price > 0 && !food)
+      ? '<button class="btn btn-outline btn-full btn-small" id="open-upi-qr" style="margin-top:10px">📱 Scan UPI QR Code</button>'
+      : '';
+
     box.innerHTML =
       '<a href="gigs.html" class="back-link">← Back to gigs</a><div class="detail-grid"><div class="stack">' +
       '<section class="panel"><div class="detail-hero"><span class="card-icon ' + (g.tone || "orange") + '">' + (g.icon || "💼") + '</span><div><span class="pill ' + (g.pill || c.pill) + '">' + esc(g.pillLabel || c.label) + '</span><h1>' + esc(g.title) + '</h1><p class="muted">Posted by ' + esc(g.by) + '</p></div></div>' +
@@ -713,30 +771,64 @@
       '<div class="info-grid"><div><small>Location</small><b>📍 ' + esc(g.loc) + '</b></div><div><small>When</small><b>🕒 ' + esc(g.when) + '</b></div><div><small>' + (food ? "Spots left" : "Category") + '</small><b>' + (food ? left + " of " + (g.total || 4) : esc(c.label)) + '</b></div></div>' +
       '<div class="tags">' + (g.tags || []).map(function (t) { return "<span>" + esc(t) + "</span>"; }).join("") + '</div></section>' +
       '<section class="suggest" style="margin-top:0"><div class="section-heading"><div><span class="eyebrow">YOU MAY ALSO LIKE</span><h2>Similar gigs</h2></div></div><div class="suggest-grid" id="similar"></div></section></div>' +
-      '<aside class="sticky-side"><div class="panel price-card"><div class="big">' + rupee(g.price) + '</div><div class="unit">' + (food ? "per person" : "fixed reward") + '</div>' + cta +
+      '<aside class="sticky-side"><div class="panel price-card"><div class="big">' + rupee(g.price) + '</div><div class="unit">' + (food ? "per person" : "fixed reward") + '</div>' + cta + upiCta +
       '<div class="poster"><span class="avatar">' + esc(g.init) + '</span><div><b>' + esc(g.by) + '</b><small><span class="verified" style="display:inline-grid;width:15px;height:15px;font-size:9px">✓</span> Verified student</small></div></div>' +
       '<div class="safe">🔒 <span>Payments and rewards are safely completed when marked done by students.</span></div></div></aside></div>' +
-      '<div class="modal" id="modal"><div class="modal-card"><h2>Apply for this gig</h2><p>Tell ' + esc(g.by) + ' why you\'re a great fit.</p><div class="field"><textarea id="msg" rows="4" placeholder="Hi! I can help with this because..."></textarea></div><div class="form-actions"><button class="btn btn-outline" id="cancel">Cancel</button><button class="btn btn-primary" id="send">Send application</button></div></div></div>';
+      '<div class="modal" id="modal"><div class="modal-card"><h2>Apply for this gig</h2><p>Tell ' + esc(g.by) + ' why you\'re a great fit.</p><div class="field"><textarea id="msg" rows="4" placeholder="Hi! I can help with this because..."></textarea></div><div class="form-actions"><button class="btn btn-outline" id="cancel">Cancel</button><button class="btn btn-primary" id="send">Send application</button></div></div></div>' +
+      '<div class="modal" id="upi-modal"><div class="modal-card" style="text-align:center;max-width:440px"><span class="card-icon green" style="margin:0 auto 12px;font-size:24px">📱</span><h2>Scan &amp; Pay via UPI QR</h2><p style="margin-bottom:14px;color:var(--ink-2);font-size:13px">Scan using Google Pay, PhonePe, Paytm, or BHIM.</p><div id="upi-qr-card" style="margin:16px auto;padding:12px;background:#fff;border-radius:16px;display:inline-block"></div><div style="background:var(--bg);padding:14px;border-radius:var(--r);margin:14px 0;text-align:left;font-size:13px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>Payee Student:</span><b>' + esc(workerName) + '</b></div><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span>UPI ID:</span><b style="color:var(--brand)">' + esc(workerUpi) + '</b></div><div style="display:flex;justify-content:space-between"><span>Reward Amount:</span><b style="font-size:16px;color:#15803d">' + rupee(g.price) + '</b></div></div><div style="display:flex;flex-direction:column;gap:10px"><a href="' + upiUri + '" class="btn btn-primary btn-full" style="display:flex;align-items:center;justify-content:center;gap:8px">📱 Open in PhonePe / GPay / Paytm</a>' + ((isPoster && isInProgress) ? '<button class="btn btn-primary btn-full" id="confirm-payment-complete" style="background:#16a34a">✓ Payment Done — Complete Gig</button>' : '') + '<button class="btn btn-outline btn-full" id="close-upi-modal">Close</button></div></div></div>';
 
     $("#similar") && ($("#similar").innerHTML = suggestHTML(suggest(null, { like: g, exclude: g.id, n: 3 })));
+
+    var upiModal = $("#upi-modal");
+    function showUpiModal() {
+      if (!upiModal) return;
+      upiModal.classList.add("show");
+      if (window.renderQRCode) {
+        window.renderQRCode("#upi-qr-card", upiUri, 200);
+      }
+    }
+
+    var openUpiBtn = $("#open-upi-qr");
+    if (openUpiBtn) openUpiBtn.addEventListener("click", showUpiModal);
+
+    var closeUpiBtn = $("#close-upi-modal");
+    if (closeUpiBtn) closeUpiBtn.addEventListener("click", function () { upiModal.classList.remove("show"); });
+    if (upiModal) upiModal.addEventListener("click", function (e) { if (e.target === upiModal) upiModal.classList.remove("show"); });
+
+    async function executeComplete() {
+      try {
+        await API.gigs.complete(g.id);
+        confetti();
+        toast("Gig completed successfully!");
+        setTimeout(function () { location.reload(); }, 600);
+      } catch (err) {
+        toast(err.message || "Failed to complete gig");
+      }
+    }
 
     var compBtn = $("#complete-btn");
     if (compBtn) {
       compBtn.addEventListener("click", async function () {
+        if (isInProgress && isPoster && g.price > 0 && !food) {
+          showUpiModal();
+          return;
+        }
         var actionText = food ? "close and complete this food order" : "mark this gig as completed";
         if (!confirm("Are you sure you want to " + actionText + "?")) return;
         compBtn.disabled = true;
         compBtn.textContent = "Completing...";
-        try {
-          await API.gigs.complete(g.id);
-          confetti();
-          toast("Gig completed successfully!");
-          setTimeout(function () { location.reload(); }, 600);
-        } catch (err) {
-          toast(err.message || "Failed to complete gig");
-          compBtn.disabled = false;
-          compBtn.textContent = food ? "Close & Complete Food Order" : "✓ Mark Gig Completed";
-        }
+        await executeComplete();
+        compBtn.disabled = false;
+        compBtn.textContent = food ? "Close & Complete Food Order" : "✓ Mark Gig Completed";
+      });
+    }
+
+    var confirmPayBtn = $("#confirm-payment-complete");
+    if (confirmPayBtn) {
+      confirmPayBtn.addEventListener("click", async function () {
+        confirmPayBtn.disabled = true;
+        confirmPayBtn.textContent = "Completing gig...";
+        await executeComplete();
       });
     }
 
@@ -898,13 +990,27 @@
 
     var left = spotsLeft(g);
     document.title = "Join " + g.title + " | Gig Hub";
+    var payeeUpi = (g.raw && g.raw.poster && g.raw.poster.upiId) || "cafeteria@upi";
+    var payeeName = g.by || "Order Organizer";
+    var upiUri = "upi://pay?pa=" + encodeURIComponent(payeeUpi) + "&pn=" + encodeURIComponent(payeeName) + "&am=" + g.price + "&cu=INR&tn=" + encodeURIComponent("Food Order: " + g.title);
+
     box.innerHTML =
       '<a href="gigs.html" class="back-link">← Back to gigs</a><div class="form-header"><span class="eyebrow">JOIN A FOOD ORDER</span><h1>Join the <em>' + esc(g.title) + '</em> order</h1><p>Confirm your share, choose a pickup time and you\'re done.</p></div>' +
       '<form id="join-form" class="order-grid"><div class="post-form">' +
       '<section class="form-section"><h2>Your share</h2><p>Reward: <b>' + rupee(g.price) + '</b> per person. ' + left + ' spots remaining.</p></section>' +
       '<section class="form-section"><h2>Pickup time</h2><div class="slots"><label class="slot"><input type="radio" name="slot" value="1:00 PM" checked><span>1:00 PM<small>' + esc(g.loc) + '</small></span></label><label class="slot"><input type="radio" name="slot" value="1:30 PM"><span>1:30 PM<small>' + esc(g.loc) + '</small></span></label></div></section>' +
-      '<section class="form-section"><h2>Payment method</h2><div class="pay-list"><label class="pay"><input type="radio" name="pay" value="UPI" checked><span><i>📱</i><div><b>UPI</b><small>Pay instantly on pickup</small></div></span></label></div></section>' +
+      '<section class="form-section"><h2>Payment method: Scan &amp; Pay via UPI QR</h2>' +
+      '<div style="background:#faf8ff;border:1.5px solid #dcd2ff;border-radius:var(--r);padding:20px;text-align:center">' +
+      '<div id="join-upi-qr" style="margin:0 auto 12px"></div>' +
+      '<p style="font-weight:700;font-size:14px;color:var(--brand-d)">Scan with Google Pay, PhonePe, Paytm or BHIM</p>' +
+      '<small style="color:var(--ink-2);display:block;margin:6px 0">Payee: <b>' + esc(payeeName) + '</b> (' + esc(payeeUpi) + ') · Share: <b style="color:#15803d">' + rupee(g.price) + '</b></small>' +
+      '<div style="margin-top:10px"><a href="' + upiUri + '" class="btn btn-small btn-primary" style="display:inline-flex;gap:6px">📱 Pay with UPI App</a></div>' +
+      '</div></section>' +
       '<button class="btn btn-primary btn-lg btn-full" type="submit">Confirm &amp; join order →</button></div></form>';
+
+    if (window.renderQRCode && $("#join-upi-qr")) {
+      window.renderQRCode("#join-upi-qr", upiUri, 180);
+    }
 
     var form = $("#join-form");
     if (form) {
@@ -978,17 +1084,37 @@
       var u = res.user;
       var stats = res.stats || {};
 
-      var heroName = $(".profile-name h1");
-      if (heroName) heroName.innerHTML = esc(u.name) + ' <span class="verified-badge">✓ Verified student</span>';
+      var heroName = $("#profile-name-text") || $(".profile-name h1");
+      if (heroName) heroName.textContent = u.name;
 
-      var heroDept = $(".profile-name p");
+      var heroDept = $("#profile-dept-text") || $(".profile-name p");
       if (heroDept) heroDept.textContent = (u.department || "Student") + " · " + (u.college || "University");
 
-      var heroBio = $(".profile-bio");
-      if (heroBio && u.bio) heroBio.textContent = u.bio;
+      var heroBio = $("#profile-bio-text") || $(".profile-bio");
+      if (heroBio) heroBio.textContent = u.bio || "Student who enjoys helping others with technology, design and campus activities.";
 
-      var heroAvatar = $(".profile-avatar");
-      if (heroAvatar) heroAvatar.textContent = u.initials || "ST";
+      var heroAvatar = $("#hero-avatar") || $(".profile-avatar");
+      if (heroAvatar) {
+        if (u.avatarUrl) {
+          heroAvatar.innerHTML = '<img src="' + esc(u.avatarUrl) + '" style="width:100%;height:100%;border-radius:24px;object-fit:cover" alt="' + esc(u.name) + '">';
+        } else {
+          heroAvatar.textContent = u.initials || "ST";
+        }
+      }
+
+      if (u.upiId) {
+        var upiWrap = $("#profile-upi-wrap");
+        var upiText = $("#profile-upi-text");
+        if (upiWrap && upiText) {
+          upiText.textContent = u.upiId;
+          upiWrap.style.display = "";
+        }
+      }
+
+      var tagsBox = $("#profile-tags");
+      if (tagsBox && u.skills && u.skills.length) {
+        tagsBox.innerHTML = u.skills.map(function (s) { return "<span>" + esc(s) + "</span>"; }).join("");
+      }
 
       var statGrid = $$(".profile-stat-grid strong");
       if (statGrid.length >= 4) {
@@ -998,20 +1124,105 @@
         statGrid[3].textContent = (stats.trustScore || 96) + "%";
       }
 
-      var editBtn = $(".profile-hero>.btn");
-      if (editBtn) {
-        editBtn.addEventListener("click", async function (e) {
-          e.preventDefault();
-          var newBio = prompt("Update your bio:", u.bio || "");
-          if (newBio == null) return;
-          try {
-            var updated = await API.users.update({ bio: newBio });
-            if (heroBio) heroBio.textContent = updated.user.bio;
-            toast("Profile updated successfully!");
-          } catch (err) {
-            toast(err.message);
-          }
+      // Direct avatar photo upload
+      var avatarInput = $("#avatar-file-input");
+      if (avatarInput) {
+        avatarInput.addEventListener("change", function (e) {
+          var file = e.target.files && e.target.files[0];
+          if (!file) return;
+          compressImage(file, 240, async function (dataUrl) {
+            try {
+              var updated = await API.users.update({ avatarUrl: dataUrl });
+              API.storage.setUser(updated.user, true);
+              if (heroAvatar) heroAvatar.innerHTML = '<img src="' + esc(dataUrl) + '" style="width:100%;height:100%;border-radius:24px;object-fit:cover">';
+              toast("Profile picture updated!");
+              setTimeout(function () { location.reload(); }, 600);
+            } catch (err) {
+              toast(err.message || "Failed to update profile photo");
+            }
+          });
         });
+      }
+
+      // Edit Profile modal
+      var editBtn = $("#edit-profile-btn") || $(".profile-hero>.btn");
+      var editModal = $("#edit-modal");
+      var editForm = $("#edit-profile-form");
+      var editAvatarFile = $("#edit-avatar-file");
+      var editAvatarPreview = $("#edit-avatar-preview");
+      var currentNewAvatar = u.avatarUrl || "";
+
+      if (editBtn && editModal) {
+        editBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          if ($("#edit-name")) $("#edit-name").value = u.name || "";
+          if ($("#edit-college")) $("#edit-college").value = u.college || "";
+          if ($("#edit-department")) $("#edit-department").value = u.department || "";
+          if ($("#edit-bio")) $("#edit-bio").value = u.bio || "";
+          if ($("#edit-skills")) $("#edit-skills").value = (u.skills || []).join(", ");
+          if ($("#edit-upi")) $("#edit-upi").value = u.upiId || "";
+
+          if (editAvatarPreview) {
+            if (currentNewAvatar) {
+              editAvatarPreview.innerHTML = '<img src="' + esc(currentNewAvatar) + '" style="width:100%;height:100%;border-radius:18px;object-fit:cover">';
+            } else {
+              editAvatarPreview.textContent = u.initials || "ST";
+            }
+          }
+          editModal.classList.add("show");
+        });
+
+        if (editAvatarFile) {
+          editAvatarFile.addEventListener("change", function (e) {
+            var file = e.target.files && e.target.files[0];
+            if (!file) return;
+            compressImage(file, 240, function (dataUrl) {
+              currentNewAvatar = dataUrl;
+              if (editAvatarPreview) {
+                editAvatarPreview.innerHTML = '<img src="' + esc(dataUrl) + '" style="width:100%;height:100%;border-radius:18px;object-fit:cover">';
+              }
+            });
+          });
+        }
+
+        $("#edit-modal-cancel") && $("#edit-modal-cancel").addEventListener("click", function () {
+          editModal.classList.remove("show");
+        });
+
+        editModal.addEventListener("click", function (e) {
+          if (e.target === editModal) editModal.classList.remove("show");
+        });
+
+        if (editForm) {
+          editForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            var payload = {
+              name: ($("#edit-name").value || "").trim(),
+              college: ($("#edit-college").value || "").trim(),
+              department: ($("#edit-department").value || "").trim(),
+              bio: ($("#edit-bio").value || "").trim(),
+              upiId: ($("#edit-upi").value || "").trim(),
+            };
+            if (currentNewAvatar) payload.avatarUrl = currentNewAvatar;
+
+            var skillsRaw = ($("#edit-skills").value || "").trim();
+            if (skillsRaw) {
+              payload.skills = skillsRaw.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+            } else {
+              payload.skills = [];
+            }
+
+            try {
+              var updated = await API.users.update(payload);
+              API.storage.setUser(updated.user, true);
+              toast("Profile updated successfully!");
+              editModal.classList.remove("show");
+              setTimeout(function () { location.reload(); }, 600);
+            } catch (err) {
+              toast(err.message || "Failed to update profile");
+            }
+          });
+        }
       }
     } catch (e) {
       console.warn("Profile API failed", e);
@@ -1069,6 +1280,206 @@
     });
 
     await loadNotifs(false);
+  };
+
+  // 14. Admin Portal (admin.html)
+  pages.admin = async function () {
+    var user = API ? API.storage.getUser() : null;
+    if (!user || user.role !== 'admin') {
+      toast("Admin privileges required");
+      location.href = "dashboard.html";
+      return;
+    }
+
+    var tbody = $("#admin-tbody");
+    var searchInput = $("#admin-search");
+    var roleSelect = $("#admin-role-filter");
+    var countBadge = $("#accounts-count");
+
+    // Load stats
+    try {
+      var stats = await API.admin.stats();
+      if ($("#m-users")) $("#m-users").textContent = pad(stats.totalUsers);
+      if ($("#m-active")) $("#m-active").textContent = pad(stats.activeGigs);
+      if ($("#m-completed")) $("#m-completed").textContent = pad(stats.completedGigs);
+      if ($("#m-volume")) $("#m-volume").textContent = rupee(stats.totalVolume);
+    } catch (e) {
+      console.warn("Admin stats failed", e);
+    }
+
+    async function loadAccounts() {
+      if (!tbody) return;
+      var q = searchInput ? searchInput.value.trim() : "";
+      var role = roleSelect ? roleSelect.value : "all";
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--ink-3)">Loading accounts...</td></tr>';
+
+      try {
+        var res = await API.admin.users({ q: q, role: role });
+        var users = res.users || [];
+        if (countBadge) countBadge.textContent = users.length + " account" + (users.length === 1 ? "" : "s");
+
+        if (!users.length) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--ink-3)">No student accounts found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = users.map(function (u) {
+          var avatar = u.avatar_url
+            ? '<img src="' + esc(u.avatar_url) + '" class="admin-avatar" alt="' + esc(u.name) + '">'
+            : '<div class="admin-avatar">' + esc(u.name ? u.name.slice(0, 2).toUpperCase() : "ST") + '</div>';
+          var roleBadge = u.role === 'admin'
+            ? '<span class="admin-badge">🛡️ Admin</span>'
+            : '<span class="student-badge">🎓 Student</span>';
+          var joined = u.created_at ? new Date(u.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "Recent";
+
+          return '<tr>' +
+            '<td><div style="display:flex;align-items:center;gap:10px">' + avatar + '<div><b>' + esc(u.name) + '</b>' + (u.verified ? ' <span style="color:var(--green)">✓</span>' : '') + '<small>' + esc(u.department || "Student") + '</small></div></div></td>' +
+            '<td>' + esc(u.email) + '</td>' +
+            '<td>' + roleBadge + '</td>' +
+            '<td>' + esc(u.college || "Campus") + '</td>' +
+            '<td><b>' + rupee(u.balance || 0) + '</b></td>' +
+            '<td>' + pad(u.posted_gigs_count || 0) + '</td>' +
+            '<td>' + pad(u.completed_gigs_count || 0) + '</td>' +
+            '<td><small>' + joined + '</small></td>' +
+            '<td><button class="btn btn-small btn-outline inspect-btn" data-id="' + u.id + '">Inspect & History →</button></td>' +
+            '</tr>';
+        }).join("");
+
+        // Attach inspect handlers
+        $$(".inspect-btn", tbody).forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            openInspectModal(btn.dataset.id);
+          });
+        });
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:#ef4444">Failed to load accounts: ' + esc(err.message) + '</td></tr>';
+      }
+    }
+
+    async function openInspectModal(id) {
+      var modal = $("#admin-modal");
+      var body = $("#admin-modal-body");
+      if (!modal || !body) return;
+      body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--ink-3)">Loading full account history...</div>';
+      modal.classList.add("show");
+
+      try {
+        var data = await API.admin.getUser(id);
+        var u = data.user;
+        var stats = data.stats || {};
+        var posted = data.postedGigs || [];
+        var worked = data.workedGigs || [];
+        var txs = data.transactions || [];
+
+        var avatar = u.avatarUrl
+          ? '<img src="' + esc(u.avatarUrl) + '" alt="' + esc(u.name) + '">'
+          : '<div class="big-avatar">' + esc(u.name ? u.name.slice(0, 2).toUpperCase() : "ST") + '</div>';
+
+        var roleBtnText = u.role === 'admin' ? "Demote to Student" : "Promote to Admin";
+        var nextRole = u.role === 'admin' ? "student" : "admin";
+
+        body.innerHTML =
+          '<div class="user-profile-header">' + avatar +
+          '<div style="flex:1">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">' +
+          '<div><h3 style="font-size:20px;display:flex;align-items:center;gap:8px">' + esc(u.name) + ' <span class="' + (u.role === 'admin' ? 'admin-badge' : 'student-badge') + '">' + (u.role === 'admin' ? '🛡️ Admin' : '🎓 Student') + '</span></h3>' +
+          '<p style="color:var(--ink-3);font-size:13px">' + esc(u.email) + ' · ' + esc(u.college) + ' (' + esc(u.department || "General") + ')</p></div>' +
+          '<button class="role-btn" id="toggle-role-btn">' + roleBtnText + '</button>' +
+          '</div>' +
+          '<p style="font-size:13px;color:var(--ink-2);margin:8px 0">' + esc(u.bio || "No bio provided.") + '</p>' +
+          '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+          (u.upiId ? '<span class="pill green-pill">📱 UPI: ' + esc(u.upiId) + '</span>' : '<span class="pill" style="background:#f3f4f6">No UPI ID</span>') +
+          '<span class="pill purple-pill">Balance: ' + rupee(u.balance) + '</span>' +
+          '<span class="pill blue-pill">Trust: ' + (stats.trustScore || 80) + '%</span>' +
+          '</div>' +
+          '</div></div>' +
+
+          '<div class="modal-tabs">' +
+          '<button class="modal-tab active" data-tab="posted">Posted Gigs (' + posted.length + ')</button>' +
+          '<button class="modal-tab" data-tab="worked">Worked Gigs (' + worked.length + ')</button>' +
+          '<button class="modal-tab" data-tab="txs">Transactions (' + txs.length + ')</button>' +
+          '</div>' +
+
+          '<div class="modal-content-box" id="admin-tab-content"></div>';
+
+        function renderTab(tab) {
+          var container = $("#admin-tab-content");
+          if (!container) return;
+          if (tab === 'posted') {
+            if (!posted.length) { container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--ink-3)">No gigs posted by this student.</div>'; return; }
+            container.innerHTML = posted.map(function (g) {
+              return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid var(--line-2)">' +
+                '<div><b>' + esc(g.title) + '</b><small style="display:block;color:var(--ink-3)">' + esc(g.category) + ' · ' + esc(g.location || "Campus") + ' · ' + (g.worker_name ? 'Worker: ' + esc(g.worker_name) : 'No worker yet') + '</small></div>' +
+                '<div style="text-align:right"><span class="status ' + (g.status === 'completed' ? 'success' : g.status === 'open' ? 'active' : 'pending') + '">' + esc(g.status) + '</span><b style="display:block;margin-top:4px">' + rupee(g.reward) + '</b></div>' +
+                '</div>';
+            }).join("");
+          } else if (tab === 'worked') {
+            if (!worked.length) { container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--ink-3)">No gigs accepted or completed by this student.</div>'; return; }
+            container.innerHTML = worked.map(function (g) {
+              return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid var(--line-2)">' +
+                '<div><b>' + esc(g.title) + '</b><small style="display:block;color:var(--ink-3)">Posted by ' + esc(g.poster_name) + ' · ' + esc(g.category) + '</small></div>' +
+                '<div style="text-align:right"><span class="status ' + (g.status === 'completed' ? 'success' : 'pending') + '">' + esc(g.status) + '</span><b style="display:block;margin-top:4px">' + rupee(g.reward) + '</b></div>' +
+                '</div>';
+            }).join("");
+          } else if (tab === 'txs') {
+            if (!txs.length) { container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--ink-3)">No wallet transactions recorded.</div>'; return; }
+            container.innerHTML = txs.map(function (t) {
+              var pos = t.type === 'earning';
+              return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid var(--line-2)">' +
+                '<div><b>' + esc(t.gig_title || t.note || t.type) + '</b><small style="display:block;color:var(--ink-3)">' + esc(t.type) + ' · ' + (t.created_at ? new Date(t.created_at).toLocaleDateString() : '') + '</small></div>' +
+                '<div style="text-align:right"><span class="status ' + (t.status === 'completed' ? 'success' : 'pending') + '">' + esc(t.status) + '</span><b class="amount ' + (pos ? 'positive' : '') + '" style="display:block;margin-top:4px">' + (pos ? '+' : '-') + rupee(t.amount) + '</b></div>' +
+                '</div>';
+            }).join("");
+          }
+        }
+
+        renderTab('posted');
+
+        $$(".modal-tab", body).forEach(function (tabBtn) {
+          tabBtn.addEventListener("click", function () {
+            $$(".modal-tab", body).forEach(function (t) { t.classList.remove("active"); });
+            tabBtn.classList.add("active");
+            renderTab(tabBtn.dataset.tab);
+          });
+        });
+
+        var roleBtn = $("#toggle-role-btn");
+        if (roleBtn) {
+          roleBtn.addEventListener("click", async function () {
+            if (!confirm("Are you sure you want to change this account's role to " + nextRole + "?")) return;
+            try {
+              await API.admin.setRole(id, nextRole);
+              toast("User role updated to " + nextRole);
+              openInspectModal(id);
+              loadAccounts();
+            } catch (err) {
+              toast(err.message || "Failed to update role");
+            }
+          });
+        }
+
+      } catch (err) {
+        body.innerHTML = '<div style="padding:24px;color:#ef4444">Failed to load account details: ' + esc(err.message) + '</div>';
+      }
+    }
+
+    $("#admin-modal-close") && $("#admin-modal-close").addEventListener("click", function () {
+      $("#admin-modal").classList.remove("show");
+    });
+    $("#admin-modal") && $("#admin-modal").addEventListener("click", function (e) {
+      if (e.target === $("#admin-modal")) $("#admin-modal").classList.remove("show");
+    });
+
+    if (searchInput) {
+      var timeout = null;
+      searchInput.addEventListener("input", function () {
+        clearTimeout(timeout);
+        timeout = setTimeout(loadAccounts, 250);
+      });
+    }
+    if (roleSelect) roleSelect.addEventListener("change", loadAccounts);
+
+    await loadAccounts();
   };
 
   /* ---------- Initialization on DOM ready ---------- */

@@ -3,7 +3,7 @@ const config = require('../config');
 const db = require('../db');
 const AppError = require('../utils/AppError');
 
-const getUser = db.prepare('SELECT id, name, email, college, token_version FROM users WHERE id = ?');
+const getUser = db.prepare('SELECT id, name, email, college, role, token_version FROM users WHERE id = ?');
 
 function resolve(req) {
   const header = req.headers.authorization || '';
@@ -29,9 +29,19 @@ const optionalAuth = (req, _res, next) => {
   try { req.user = resolve(req) || null; next(); } catch (e) { next(e); }
 };
 
+const requireAdmin = (req, res, next) => {
+  requireAuth(req, res, (err) => {
+    if (err) return next(err);
+    if (!req.user || req.user.role !== 'admin') {
+      return next(AppError.forbidden('Admin privileges required'));
+    }
+    next();
+  });
+};
+
 const signToken = (user, remember = false) =>
   jwt.sign({ sub: user.id, tv: user.token_version }, config.jwtSecret, {
     expiresIn: remember ? config.rememberTtl : config.tokenTtl,
   });
 
-module.exports = { requireAuth, optionalAuth, signToken };
+module.exports = { requireAuth, requireAdmin, optionalAuth, signToken };

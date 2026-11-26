@@ -46,6 +46,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/history', require('./routes/history'));
 app.use('/api/wallet', require('./routes/wallet'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/admin', require('./routes/admin'));
 app.use('/api', notFound);
 
 // Optional: serve the static HTML frontend from the project root (local dev convenience).

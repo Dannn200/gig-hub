@@ -342,6 +342,24 @@
       delete: function (id) {
         return request('/notifications/' + encodeURIComponent(id), { method: 'DELETE' });
       }
+    },
+
+    // Admin Portal
+    admin: {
+      stats: function () {
+        return request('/admin/stats');
+      },
+      users: function (params) {
+        params = params || {};
+        var q = new URLSearchParams(params).toString();
+        return request('/admin/users' + (q ? '?' + q : ''));
+      },
+      getUser: function (id) {
+        return request('/admin/users/' + encodeURIComponent(id));
+      },
+      setRole: function (id, role) {
+        return request('/admin/users/' + encodeURIComponent(id) + '/role', { method: 'PATCH', body: { role: role } });
+      }
     }
   };
 

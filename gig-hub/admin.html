@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6544e6">
+<title>Admin Portal | Gig Hub</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%236544e6'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='white' font-family='Georgia' font-weight='700'%3EG%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+.admin-badge { background: #fee2e2; color: #991b1b; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+.student-badge { background: #e0e7ff; color: #3730a3; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+.filter-bar { display: flex; gap: 14px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+.filter-search { flex: 1; min-width: 240px; padding: 11px 16px; border: 1.5px solid var(--line); border-radius: var(--r); font-family: inherit; font-size: 14px; outline: none; }
+.filter-search:focus { border-color: var(--brand); }
+.filter-select { padding: 11px 16px; border: 1.5px solid var(--line); border-radius: var(--r); font-family: inherit; font-size: 14px; background: #fff; outline: none; cursor: pointer; }
+.admin-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: #dcd2ff; color: var(--brand-d); display: grid; place-items: center; font-weight: 800; font-size: 13px; flex: none; }
+.modal-tabs { display: flex; gap: 10px; border-bottom: 2px solid var(--line-2); margin: 18px 0 14px; }
+.modal-tab { padding: 8px 16px; border: 0; background: none; font-weight: 700; font-size: 13px; color: var(--ink-3); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.modal-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+.modal-content-box { max-height: 380px; overflow-y: auto; }
+.modal-card.admin-view { max-width: 720px; width: 95%; }
+.user-profile-header { display: flex; gap: 18px; align-items: center; background: #faf8ff; border: 1px solid #e5deff; padding: 18px; border-radius: var(--r); margin-bottom: 16px; }
+.user-profile-header img, .user-profile-header .big-avatar { width: 68px; height: 68px; border-radius: 20px; object-fit: cover; background: var(--brand-l); color: var(--brand-d); font-size: 26px; font-weight: 800; display: grid; place-items: center; flex: none; }
+.role-btn { border: 1px solid var(--line); background: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.role-btn:hover { background: var(--brand-ll); border-color: var(--brand); }
+</style>
+</head>
+<body data-page="admin">
+<header class="navbar">
+  <a class="brand" href="index.html"><span class="brand-mark">G</span><span>Gig<span class="brand-accent">Hub</span></span></a>
+  <nav class="nav-links" id="nav">
+    <a href="index.html">Home</a>
+    <a href="gigs.html">Explore Gigs</a>
+    <a href="post-gig.html">Post a Gig</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a class="active" href="admin.html">Admin Portal</a>
+  </nav>
+  <div class="nav-actions">
+    <a class="btn btn-light" href="login.html">Log in</a>
+    <a class="btn btn-primary" href="register.html">Join Gig Hub</a>
+  </div>
+  <button class="menu-btn" aria-label="Menu" aria-expanded="false">☰</button>
+</header>
+
+<main class="page-shell">
+  <section class="page-head">
+    <div>
+      <span class="eyebrow">CAMPUS CONTROL &amp; AUDIT</span>
+      <h1>Admin <em>Portal</em> 🛡️</h1>
+      <p>Audit registered campus accounts, view complete activity histories, and inspect student profiles.</p>
+    </div>
+  </section>
+
+  <!-- Metric grid -->
+  <section class="metric-grid">
+    <div class="metric-card">
+      <span class="metric-icon purple">👥</span>
+      <small>Total Accounts</small>
+      <strong id="m-users">0</strong>
+      <span class="muted">Registered students &amp; staff</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-icon orange">⚡</span>
+      <small>Active Gigs</small>
+      <strong id="m-active">0</strong>
+      <span class="muted">Open &amp; In-progress</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-icon green">✓</span>
+      <small>Completed Gigs</small>
+      <strong id="m-completed">0</strong>
+      <span class="muted">Total completed to date</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-icon blue">₹</span>
+      <small>Total Volume</small>
+      <strong id="m-volume">₹0</strong>
+      <span class="muted">Cumulative completed payouts</span>
+    </div>
+  </section>
+
+  <!-- Accounts Table Panel -->
+  <section class="panel table-panel">
+    <div class="panel-head">
+      <div>
+        <h2>Campus Accounts Directory</h2>
+        <p>Monitor user accounts, roles, gig participation, and wallet balances</p>
+      </div>
+      <div id="accounts-count" class="pill purple-pill">0 accounts</div>
+    </div>
+
+    <div class="filter-bar">
+      <input type="text" id="admin-search" class="filter-search" placeholder="Search by student name, email, or department...">
+      <select id="admin-role-filter" class="filter-select">
+        <option value="all">All Roles</option>
+        <option value="student">Students Only</option>
+        <option value="admin">Admins Only</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student Account</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>College / Department</th>
+            <th>Balance</th>
+            <th>Posted</th>
+            <th>Completed</th>
+            <th>Joined</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="admin-tbody">
+          <tr><td colspan="9" style="text-align:center;padding:30px;color:var(--ink-3)">Loading accounts...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- Detailed User Profile & History Inspection Modal -->
+<div class="modal" id="admin-modal">
+  <div class="modal-card admin-view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2>Account Inspection</h2>
+      <button class="btn btn-small btn-light" id="admin-modal-close" style="padding:4px 10px;font-size:16px">✕</button>
+    </div>
+    <div id="admin-modal-body">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+</div>
+
+<footer class="footer compact">
+  <div class="footer-brand">
+    <a class="brand" href="index.html"><span class="brand-mark">G</span><span>Gig<span class="brand-accent">Hub</span></span></a>
+    <p>Students helping students, one gig at a time.</p>
+  </div>
+  <div>
+    <b>Navigate</b>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="gigs.html">Explore Gigs</a>
+    <a href="profile.html">Profile</a>
+  </div>
+  <div>
+    <b>Administration</b>
+    <a href="admin.html">Admin Portal</a>
+    <a href="index.html">Log out</a>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/qr.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -7,15 +7,94 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%236544e6'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='white' font-family='Georgia' font-weight='700'%3EG%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<style>
+.profile-avatar-wrap { position: relative; width: 104px; height: 104px; flex: none; margin-top: 26px; }
+.profile-avatar { width: 100%; height: 100%; border-radius: 30px; display: grid; place-items: center; background: linear-gradient(140deg,#7b5df2,#4f31c5); color: #fff; font-family: var(--display); font-size: 38px; border: 5px solid #fff; box-shadow: var(--sh-2); object-fit: cover; }
+.avatar-edit-badge { position: absolute; bottom: -4px; right: -4px; background: #fff; border: 1.5px solid var(--line); border-radius: 50%; width: 32px; height: 32px; display: grid; place-items: center; font-size: 15px; cursor: pointer; box-shadow: var(--sh-1); transition: .2s; }
+.avatar-edit-badge:hover { background: var(--brand-ll); border-color: var(--brand); transform: scale(1.08); }
+.upi-pill { display: inline-flex; align-items: center; gap: 6px; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; margin-top: 8px; }
+.avatar-preview-box { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; padding: 12px; background: var(--bg); border-radius: var(--r); }
+.avatar-preview-img { width: 64px; height: 64px; border-radius: 18px; object-fit: cover; background: var(--brand-l); display: grid; place-items: center; font-size: 24px; font-weight: 800; color: var(--brand-d); border: 2px solid #fff; box-shadow: var(--sh-1); flex: none; }
+</style>
 </head>
 <body data-page="profile">
 <header class="navbar"><a class="brand" href="index.html"><span class="brand-mark">G</span><span>Gig<span class="brand-accent">Hub</span></span></a><nav class="nav-links" id="nav"><a href="index.html">Home</a><a href="gigs.html">Explore Gigs</a><a href="post-gig.html">Post a Gig</a><a href="dashboard.html">Dashboard</a></nav><div class="nav-actions"><a class="icon-link" href="notifications.html" aria-label="Notifications">🔔</a><a class="profile-mini active-mini" href="profile.html" aria-label="Profile">AK</a></div><button class="menu-btn" aria-label="Menu" aria-expanded="false">☰</button></header>
-<main class="page-shell"><section class="profile-hero panel"><div class="profile-avatar">AK</div><div class="profile-main"><div class="profile-name"><h1>Ayush Kumar <span class="verified-badge">✓ Verified student</span></h1><p>Computer Science · University Community</p></div><p class="profile-bio">Student who enjoys helping others with technology, design and campus activities.</p><div class="profile-tags"><span>HTML/CSS</span><span>Python</span><span>Graphic Design</span><span>Video Editing</span><span>Presentation Design</span></div></div><a class="btn btn-outline" href="#">Edit profile</a></section>
-<div class="profile-grid"><section class="panel"><div class="panel-head"><div><h2>Gig statistics</h2><p>Your contribution to the community</p></div></div><div class="profile-stat-grid"><div><strong>18</strong><span>Completed</span></div><div><strong>4</strong><span>Active</span></div><div><strong>₹4,850</strong><span>Earned</span></div><div><strong>96%</strong><span>Trust score</span></div></div></section>
-<section class="panel"><div class="panel-head"><div><h2>Reviews</h2><p>What students say about you</p></div><span class="rating">★ 4.8</span></div><div class="review"><div class="review-avatar">RS</div><div><b>Rahul Sharma</b><span>★ ★ ★ ★ ★</span><p>“Great help with my Python assignment. Explained everything clearly.”</p></div></div><div class="review"><div class="review-avatar">PM</div><div><b>Priya Mehta</b><span>★ ★ ★ ★ ★</span><p>“Very reliable for the campus event poster. Delivered before the deadline.”</p></div></div></section></div></main>
+<main class="page-shell">
+  <section class="profile-hero panel">
+    <div class="profile-avatar-wrap">
+      <div class="profile-avatar" id="hero-avatar">AK</div>
+      <label class="avatar-edit-badge" title="Change profile picture" for="avatar-file-input">📷</label>
+      <input type="file" id="avatar-file-input" accept="image/*" style="display:none">
+    </div>
+    <div class="profile-main">
+      <div class="profile-name">
+        <h1><span id="profile-name-text">Ayush Kumar</span> <span class="verified-badge">✓ Verified student</span></h1>
+        <p id="profile-dept-text">Computer Science · University Community</p>
+        <div id="profile-upi-wrap" style="display:none"><span class="upi-pill">📱 UPI: <b id="profile-upi-text">ayush@okhdfcbank</b></span></div>
+      </div>
+      <p class="profile-bio" id="profile-bio-text">Student who enjoys helping others with technology, design and campus activities.</p>
+      <div class="profile-tags" id="profile-tags"><span>HTML/CSS</span><span>Python</span><span>Graphic Design</span><span>Video Editing</span><span>Presentation Design</span></div>
+    </div>
+    <button class="btn btn-outline" id="edit-profile-btn">Edit profile</button>
+  </section>
+
+  <div class="profile-grid">
+    <section class="panel">
+      <div class="panel-head"><div><h2>Gig statistics</h2><p>Your contribution to the community</p></div></div>
+      <div class="profile-stat-grid">
+        <div><strong id="stat-completed">18</strong><span>Completed</span></div>
+        <div><strong id="stat-active">4</strong><span>Active</span></div>
+        <div><strong id="stat-earned">₹4,850</strong><span>Earned</span></div>
+        <div><strong id="stat-trust">96%</strong><span>Trust score</span></div>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><h2>Reviews</h2><p>What students say about you</p></div><span class="rating">★ 4.8</span></div>
+      <div id="reviews-list">
+        <div class="review"><div class="review-avatar">RS</div><div><b>Rahul Sharma</b><span>★ ★ ★ ★ ★</span><p>“Great help with my Python assignment. Explained everything clearly.”</p></div></div>
+        <div class="review"><div class="review-avatar">PM</div><div><b>Priya Mehta</b><span>★ ★ ★ ★ ★</span><p>“Very reliable for the campus event poster. Delivered before the deadline.”</p></div></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Edit Profile Modal -->
+<div class="modal" id="edit-modal">
+  <div class="modal-card" style="max-width:540px">
+    <h2>Edit Profile</h2>
+    <p>Keep your student details and payment info up to date.</p>
+    
+    <div class="avatar-preview-box">
+      <div class="avatar-preview-img" id="edit-avatar-preview">AK</div>
+      <div>
+        <label class="btn btn-small btn-outline" for="edit-avatar-file" style="cursor:pointer">Upload New Photo</label>
+        <input type="file" id="edit-avatar-file" accept="image/*" style="display:none">
+        <small style="display:block;color:var(--ink-3);margin-top:4px">JPG, PNG or WebP. Auto-optimized.</small>
+      </div>
+    </div>
+
+    <form id="edit-profile-form" style="display:flex;flex-direction:column;gap:12px">
+      <label>Full name<input type="text" id="edit-name" required></label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <label>College / University<input type="text" id="edit-college" required></label>
+        <label>Department<input type="text" id="edit-department" placeholder="e.g. Computer Science"></label>
+      </div>
+      <label>Bio<textarea id="edit-bio" rows="3" placeholder="Tell other students what you're studying or good at..."></textarea></label>
+      <label>Skills (comma separated)<input type="text" id="edit-skills" placeholder="Python, Video Editing, Notes, Design"></label>
+      <label>UPI ID (for receiving gig reward payments)<input type="text" id="edit-upi" placeholder="yourname@okhdfcbank / yourname@upi"></label>
+      
+      <div class="form-actions" style="margin-top:8px">
+        <button type="button" class="btn btn-outline" id="edit-modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="edit-modal-save">Save changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <footer class="footer compact"><div class="footer-brand"><a class="brand" href="index.html"><span class="brand-mark">G</span><span>Gig<span class="brand-accent">Hub</span></span></a><p>Students helping students, one gig at a time.</p></div><div><b>Navigate</b><a href="dashboard.html">Dashboard</a><a href="gigs.html">Explore</a><a href="history.html">History</a></div><div><b>Account</b><a href="notifications.html">Notifications</a><a href="index.html">Log out</a></div></footer>
 <script src="js/data.js"></script>
 <script src="js/api.js"></script>
+<script src="js/qr.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

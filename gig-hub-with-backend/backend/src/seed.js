@@ -11,14 +11,16 @@ db.transaction(() => {
   db.exec("DELETE FROM sqlite_sequence");
 
   const hash = bcrypt.hashSync('Password123', 10);
-  const U = db.prepare(`INSERT INTO users (name,email,password_hash,college,department,bio,verified,balance,created_at)
-                        VALUES (?,?,?,?,?,?,1,?,?)`);
+  const U = db.prepare(`INSERT INTO users (name,email,password_hash,college,department,bio,verified,balance,role,upi_id,created_at)
+                        VALUES (?,?,?,?,?,?,1,?,?,?,?)`);
   const uni = 'University Community';
   const ayush = U.run('Ayush Kumar', 'ayush@university.edu', hash, uni, 'Computer Science',
-    'Student who enjoys helping others with technology, design and campus activities.', 1240, iso(90)).lastInsertRowid;
-  const rahul = U.run('Rahul Sharma', 'rahul@university.edu', hash, uni, 'Electronics', 'Always hungry, always coding.', 0, iso(80)).lastInsertRowid;
-  const priya = U.run('Priya Mehta', 'priya@university.edu', hash, uni, 'Design', 'Event lead at the design society.', 0, iso(75)).lastInsertRowid;
-  const neha = U.run('Neha Verma', 'neha@university.edu', hash, uni, 'Media Studies', 'Society media head.', 0, iso(60)).lastInsertRowid;
+    'Student who enjoys helping others with technology, design and campus activities.', 1240, 'admin', 'ayush@okhdfcbank', iso(90)).lastInsertRowid;
+  const admin = U.run('Campus Admin', 'admin@university.edu', bcrypt.hashSync('Admin@123', 10), 'University Administration', 'Administration',
+    'Campus GigHub System Administrator.', 0, 'admin', 'admin@upi', iso(100)).lastInsertRowid;
+  const rahul = U.run('Rahul Sharma', 'rahul@university.edu', hash, uni, 'Electronics', 'Always hungry, always coding.', 0, 'student', 'rahul@okaxis', iso(80)).lastInsertRowid;
+  const priya = U.run('Priya Mehta', 'priya@university.edu', hash, uni, 'Design', 'Event lead at the design society.', 0, 'student', 'priya@upi', iso(75)).lastInsertRowid;
+  const neha = U.run('Neha Verma', 'neha@university.edu', hash, uni, 'Media Studies', 'Society media head.', 0, 'student', 'neha@paytm', iso(60)).lastInsertRowid;
 
   const S = db.prepare('INSERT INTO user_skills (user_id, skill) VALUES (?,?)');
   ['HTML/CSS', 'Python', 'Graphic Design', 'Video Editing', 'Presentation Design'].forEach((s) => S.run(ayush, s));

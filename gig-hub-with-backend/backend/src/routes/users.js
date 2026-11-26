@@ -41,14 +41,33 @@ router.patch('/me', requireAuth, validate({
     department: z.string().trim().max(80),
     bio: z.string().trim().max(500),
     skills: z.array(z.string().trim().min(1).max(40)).max(20),
+    avatarUrl: z.string().max(500000).optional(),
+    avatar_url: z.string().max(500000).optional(),
+    upiId: z.string().trim().max(80).optional(),
+    upi_id: z.string().trim().max(80).optional(),
   }).partial().refine((o) => Object.keys(o).length > 0, 'Nothing to update'),
 }), (req, res) => {
   const b = req.valid.body;
   const uid = req.user.id;
+  const avatar = b.avatarUrl !== undefined ? b.avatarUrl : b.avatar_url;
+  const upi = b.upiId !== undefined ? b.upiId : b.upi_id;
+
   db.transaction(() => {
-    const cols = ['name', 'college', 'department', 'bio'].filter((c) => b[c] !== undefined);
+    const updateObj = { id: uid };
+    const cols = [];
+    ['name', 'college', 'department', 'bio'].forEach((c) => {
+      if (b[c] !== undefined) { cols.push(c); updateObj[c] = b[c]; }
+    });
+    if (avatar !== undefined) {
+      cols.push('avatar_url');
+      updateObj.avatar_url = avatar;
+    }
+    if (upi !== undefined) {
+      cols.push('upi_id');
+      updateObj.upi_id = upi;
+    }
     if (cols.length) {
-      db.prepare(`UPDATE users SET ${cols.map((c) => `${c} = @${c}`).join(', ')} WHERE id = @id`).run({ ...b, id: uid });
+      db.prepare(`UPDATE users SET ${cols.map((c) => `${c} = @${c}`).join(', ')} WHERE id = @id`).run(updateObj);
     }
     if (b.skills) {
       db.prepare('DELETE FROM user_skills WHERE user_id = ?').run(uid);
